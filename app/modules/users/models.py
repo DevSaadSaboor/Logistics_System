@@ -20,6 +20,7 @@ class UserRole(enum.Enum):
 
 class User(Base):
     tenant = relationship("Tenant", back_populates="users")
+    refresh_toek = relationship("RefreshToken", backref="user")
     __tablename__ = "users"
 
     __table_args__ = (

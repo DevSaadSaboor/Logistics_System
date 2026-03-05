@@ -8,9 +8,11 @@ app = FastAPI()
 
 from app.modules.tenants.router import router as tenant_router
 from app.modules.users.router import router as auth_router
+from app.modules.auth.router import router as current_user
 
 app.include_router(tenant_router)
 app.include_router(auth_router)
+app.include_router(current_user)
 
 # @app.on_event("startup")
 # async def startup():

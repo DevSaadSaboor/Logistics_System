@@ -4,10 +4,11 @@ from typing import List
 from app.core.database import get_db
 from app.modules.users.schema import LoginRequest,LoginResponse,UserResponse,RegisterRequest
 from app.modules.users.service import UserService
-
-
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
 service = UserService()
+
 
 @router.post("/register")
 
