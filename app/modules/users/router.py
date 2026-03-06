@@ -4,10 +4,11 @@ from typing import List
 from app.core.database import get_db
 from app.modules.users.schema import LoginRequest,LoginResponse,UserResponse,RegisterRequest
 from app.modules.users.service import UserService
+from .dependencies import get_auth_service
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-service = UserService()
+# service = UserService()
 
 
 @router.post("/register")
@@ -15,13 +16,12 @@ service = UserService()
 async def register(
     payload:RegisterRequest,
     tenant_slug : str = Header(..., alias="X-Tenant-Slug"),
-    db:AsyncSession =Depends(get_db) 
+    service:UserService =Depends(get_auth_service) 
 ):
     try:
         user = await service.register_user(
-            db= db,
             tenant_slug=tenant_slug,
-            email= payload.email,
+            email= payload.email,   
             password = payload.password,
             role = payload.role,
         )
@@ -35,11 +35,10 @@ async def register(
 async def login(
     payload : LoginRequest,
     tenant_slug : str = Header(..., alias="X-Tenant-Slug"),
-    db: AsyncSession = Depends(get_db)  
+    service:UserService =Depends(get_auth_service) 
 ):
     try:
         user = await service.login_user(
-            db=db,
             tenant_slug=tenant_slug,
             email = payload.email,
             password = payload.password

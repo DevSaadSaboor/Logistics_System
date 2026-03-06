@@ -29,17 +29,17 @@ class RefreshToken(Base):
     token_hash: Mapped[str] = mapped_column(nullable=False)
 
     expires_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True), 
         nullable=False
     )
 
     revoked_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True), 
         nullable=True
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True), 
         server_default=func.now(),
         nullable=False
     )

@@ -18,7 +18,7 @@ def verify_password(plain_password:str , hash_password:str):
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRY_DATE = 60
 
-def  create_access_token(data:dict):
+def create_access_token(data:dict):
     to_encode = data.copy()
 
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRY_DATE)

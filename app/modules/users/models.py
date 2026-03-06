@@ -57,23 +57,23 @@ class User(Base):
         Enum(UserRole, name = "user_role_enum"),nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         server_default= func.now(),
         nullable=False
     )
     deleted_at : Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=True
     )
     updated_at : Mapped[datetime] = mapped_column(
-        DateTime, 
+        DateTime(timezone=True), 
         server_default= func.now(),
         onupdate= func.now(),
         nullable=False
     )
     
     last_login_at : Mapped[datetime] = mapped_column(
-        DateTime, 
+        DateTime(timezone=True), 
         nullable=True
     )
 
