@@ -10,8 +10,6 @@ class AuthService:
         self.auth_repo = RefreshTokenRespsitory(db)
         self.user_repo = UserRepository(db)
 
-    
-
     async def refresh_access_token(self, refresh_token :str,tenant_id):
        token_hash = hash_refresh_token(refresh_token)
        refresh_token_record = await self.auth_repo.get_refresh_token_by_hash(token_hash)
@@ -21,9 +19,7 @@ class AuthService:
           raise Exception("Refresh token revoked")
        if refresh_token_record.expires_at < datetime.now(timezone.utc):
           raise Exception("Invalid Refresh Token")
-       user = await self.user_repo.get_by_id(
-          refresh_token_record.user_id
-       )
+       user = await self.user_repo.get_by_id(refresh_token_record.user_id)
        if user is None:
           raise Exception("User not found")
        if user.tenant_id != tenant_id:
@@ -52,7 +48,5 @@ class AuthService:
           "token_type" : "bearer"
        }
 
-       
-        
 
 
