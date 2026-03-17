@@ -1,1 +1,171 @@
-Generic single-database configuration.
+# 📦 Logistics Backend
+
+A multi-tenant logistics management REST API built with **FastAPI**, **async SQLAlchemy**, and **PostgreSQL**. Supports tenant-isolated user authentication, shipment creation, driver assignment, and shipment tracking with full status history logging.
+
+---
+
+## 🏗️ Architecture
+
+```
+app/
+├── main.py                  # FastAPI app entry point & router registration
+├── core/
+│   ├── config.py            # Environment-based settings (DB URL, secrets)
+│   ├── database.py          # Async SQLAlchemy engine, session factory
+│   ├── dependencies.py      # Shared dependencies (auth, tenant resolution)
+│   ├── security.py          # JWT token creation & verification
+│   └── utility.py           # Shared utility helpers
+├── modules/
+│   ├── auth/                # Token refresh & current user info
+│   ├── users/               # Registration & login (tenant-scoped)
+│   ├── tenants/             # Tenant CRUD (create, list, soft-delete)
+│   └── shipments/           # Shipment lifecycle & status tracking
+└── shared/                  # Cross-module shared code
+migrations/                  # Alembic database migrations
+```
+
+Each module follows a consistent pattern:  
+`router.py` → `service.py` → `repository.py` → `models.py` / `schema.py`
+
+---
+
+## ✨ Features
+
+- **Multi-Tenancy** — Tenant resolution via `X-Tenant-Slug` header; data is scoped per tenant.
+- **JWT Authentication** — Access & refresh token flow with `python-jose` and `bcrypt` password hashing.
+- **Shipment Management** — Create shipments, assign drivers, update status, and track by tracking number (`TRK-XXXXXXXX`).
+- **Status History Log** — Every status change is recorded in a dedicated status log table.
+- **Async I/O** — End-to-end async using `asyncpg` for non-blocking database access.
+- **Database Migrations** — Schema versioning with Alembic.
+
+---
+
+## 🔌 API Endpoints
+
+### Auth (`/auth`)
+
+| Method | Endpoint          | Description                        | Auth |
+|--------|-------------------|------------------------------------|------|
+| POST   | `/auth/register`  | Register a new user (tenant-scoped)| ✗    |
+| POST   | `/auth/login`     | Login and receive JWT tokens       | ✗    |
+| GET    | `/auth/me`        | Get current authenticated user     | ✓    |
+| POST   | `/auth/refresh`   | Refresh an expired access token    | ✗    |
+
+### Tenants (`/tenants`)
+
+| Method | Endpoint              | Description              | Auth |
+|--------|-----------------------|--------------------------|------|
+| POST   | `/tenants/`           | Create a new tenant      | ✗    |
+| GET    | `/tenants/`           | List all tenants         | ✗    |
+| DELETE | `/tenants/{tenant_id}`| Soft-delete a tenant     | ✗    |
+
+### Shipments (`/shipments`)
+
+| Method | Endpoint        | Description                      | Auth |
+|--------|-----------------|----------------------------------|------|
+| POST   | `/shipments/`   | Create a new shipment            | ✓    |
+
+> **Headers:** All tenant-scoped endpoints require `X-Tenant-Slug` header.  
+> **Auth:** Protected endpoints require `Authorization: Bearer <token>` header.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Python** 3.10+
+- **PostgreSQL** (or use the provided Docker Compose)
+
+### 1. Clone the repository
+
+```bash
+git clone <repository-url>
+cd logistics_backend
+```
+
+### 2. Create a virtual environment
+
+```bash
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+
+# macOS / Linux
+source venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Configure environment variables
+
+Create a `.env` file in the project root:
+
+```env
+DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/logistics_db
+SECRET_KEY=your-secret-key-here
+```
+
+### 5. Run database migrations
+
+```bash
+alembic upgrade head
+```
+
+### 6. Start the development server
+
+```bash
+uvicorn app.main:app --reload
+```
+
+The API will be available at **http://localhost:8000**.  
+Interactive docs at **http://localhost:8000/docs**.
+
+---
+
+## 🐳 Docker
+
+A `docker-compose.yml` is included for spinning up the PostgreSQL database:
+
+```bash
+docker-compose up -d
+```
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer        | Technology                  |
+|--------------|-----------------------------|
+| Framework    | FastAPI                     |
+| ORM          | SQLAlchemy 2.0 (async)      |
+| DB Driver    | asyncpg                     |
+| Database     | PostgreSQL                  |
+| Auth         | python-jose (JWT) + bcrypt  |
+| Migrations   | Alembic                     |
+| Validation   | Pydantic v2                 |
+| Server       | Uvicorn                     |
+
+---
+
+## 📁 Key Concepts
+
+### Multi-Tenancy
+Every user and shipment belongs to a tenant. The tenant is resolved on each request via the `X-Tenant-Slug` HTTP header, ensuring complete data isolation between organizations.
+
+### Shipment Lifecycle
+```
+CREATED → ASSIGNED → IN_TRANSIT → DELIVERED
+```
+Each transition is tracked in the `shipments_status_log` table with a timestamp, location, and the user who triggered the change.
+
+---
+
+## 📄 License
+
+This project is for private/internal use.
