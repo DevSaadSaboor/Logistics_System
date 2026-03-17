@@ -7,17 +7,17 @@ class ShipmentRespository:
     def __init__(self,db:AsyncSession):
         self.db = db
 
-    async def create_shipment(self,tenant_id, status,tracking_number,created_at,origin,destination,weight,recipient_name,recipient_phone,delivery_address,assign_driver_id = None):
+    async def create_shipment(self,tenant_id,tracking_number,status,origin,destination,weight,recipient_name,recipient_phone,delivery_address,assign_driver_id = None):
         shipment = Shipments(tenant_id = tenant_id, 
                              tracking_number = tracking_number,
-                             status = ShipmentStatus.CREATED,
+                             status = status.value if hasattr(status, "value") else status,
                              origin = origin, 
                              destination= destination,
                              weight = weight,
                              recipient_name = recipient_name,
                              recipient_phone = recipient_phone, 
                              delivery_address = delivery_address, 
-                             assign_driver_id =None)
+                             assign_driver_id = assign_driver_id)
         self.db.add(shipment)
         return shipment
     
@@ -31,7 +31,7 @@ class ShipmentRespository:
         return result.scalars().first()
     
 
-    async def update_status(self,status,shipment_id):
+    async def update_status(self,shipment_id,status):
         result =(update(Shipments).where(Shipments.id == shipment_id).values(status = status))
         await self.db.execute(result)
 
@@ -44,11 +44,11 @@ class StatusLogRepostiry:
     def __init__(self,db:AsyncSession):
         self.db = db
 
-    async def create_status_log(self,status,shipment_id,location, user_id):
+    async def create_status_log(self,shipment_id,status,location, user_id):
        log = Shipment_Staus_log(
            shipment_id = shipment_id,
            updated_by_user_id= user_id,
-           status = status,
+           status=status.value if hasattr(status, "value") else status,
            location = location
        )
        self.db.add(log)

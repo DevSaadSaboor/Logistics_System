@@ -22,7 +22,7 @@ async def get_current_user(credentials:HTTPAuthorizationCredentials = Depends(se
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token")
     
-    user = await repo.get_by_id(db,user_id)
+    user = await repo.get_by_id(user_id)
     
     if not user:
         raise HTTPException(status_code=401, detail="Invalid token")

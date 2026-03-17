@@ -6,3 +6,5 @@ from .service import TenantService
 
 def get_auth_service(db: AsyncSession = Depends(get_db)) -> TenantService:
     return TenantService(db)
+
+

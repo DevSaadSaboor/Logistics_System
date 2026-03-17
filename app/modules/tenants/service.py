@@ -7,36 +7,37 @@ from datetime import datetime,timezone
 
 class TenantService:
 
-    def __init__(self):
-        self.repo = TenantRepository()
+    def __init__(self, db: AsyncSession):
+        self.db = db
+        self.repo = TenantRepository(db)
     
     
-    async def create_tenant(self,db:AsyncSession,name:str):
+    async def create_tenant(self, name:str):
         normalized_name = name.strip().lower()
         slug = normalized_name.replace(" ", "-")
-        existing =  await self.repo.get_by_name(db,slug)
+        existing =  await self.repo.get_by_name(normalized_name)
         if existing:
             raise ValueError("Tenant with this name already exists") 
-        tenant =  await self.repo.create(db,normalized_name,slug)
-        await db.commit()
-        await db.refresh(tenant)
+        tenant =  await self.repo.create(normalized_name, slug)
+        await self.db.commit()
+        await self.db.refresh(tenant)
 
         return tenant
         
     
  
 
-    async def list_tenants(self, db: AsyncSession):
-        return await self.repo.get_all(db)
+    async def list_tenants(self):
+        return await self.repo.get_all()
     
     
-    async def soft_delete(self,db:AsyncSession,tenant_id):
-        tenant = await self.repo.get_by_id(db,tenant_id)
+    async def soft_delete(self, tenant_id):
+        tenant = await self.repo.get_by_id(tenant_id)
         if not tenant:
             raise ValueError("Tenant not found")
         tenant.deleted_at = datetime.now(timezone.utc)  
-        await db.commit()
-        await db.refresh(tenant)
+        await self.db.commit()
+        await self.db.refresh(tenant)
         return tenant
 
 

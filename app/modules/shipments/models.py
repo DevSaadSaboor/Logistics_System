@@ -28,8 +28,8 @@ class Shipments(Base):
         default=uuid.uuid4
     )    
     tenant_id : Mapped[uuid.UUID] = mapped_column(
-        uuid(as_uuid = True),
-        ForeignKey= ("tenants.id"),
+        UUID(as_uuid=True),
+        ForeignKey("tenants.id"),
         nullable=False
     )
 
@@ -59,7 +59,7 @@ class Shipments(Base):
         String(255),
         nullable=False
     )
-    recipient_phone : Mapped = mapped_column(
+    recipient_phone : Mapped[str] = mapped_column(
         String(50),
         nullable= False
     )
@@ -79,7 +79,7 @@ class Shipments(Base):
     )
     assign_driver_id :  Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid = True),
-        ForeignKey=("users.id"),
+        ForeignKey("users.id"),
         nullable=True
     )
 

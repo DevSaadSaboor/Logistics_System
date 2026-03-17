@@ -7,6 +7,7 @@ from app.core.database import Base
 from app.modules.tenants.models import Tenant
 from app.modules.users.models import User
 from app.modules.auth.models import RefreshToken
+from app.modules.shipments.models import ShipmentStatus,Shipment_Staus_log
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
