@@ -8,5 +8,6 @@ class ShipmentCreate(BaseModel):
     recipient_phone : str
     weight : float
     delivery_address: str
-    
+
+
     

@@ -53,6 +53,14 @@ class StatusLogRepostiry:
        )
        self.db.add(log)
        return log
+    
+    async def get_logs_by_shipment_id(self,shipment_id):
+        result = await self.db.execute(select(Shipment_Staus_log).where(Shipment_Staus_log.shipment_id == shipment_id).order_by(Shipment_Staus_log.timestamp.asc()))
+        return result.scalars().all()
+    
+
+
+
        
         
     

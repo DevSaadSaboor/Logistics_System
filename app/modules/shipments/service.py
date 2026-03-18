@@ -2,6 +2,7 @@ from .models import Shipments, Shipment_Staus_log
 from .repository import ShipmentRespository,StatusLogRepostiry
 from datetime import datetime,timezone,timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException
 from .enum import ShipmentStatus
 from .enum import ShipmentStatus
 import uuid
@@ -44,7 +45,31 @@ class ShipmentsService():
     
     async def get_by_tracking_number(self,tracking_number):
         shipment = await self.repo.get_by_tracking_number(tracking_number)
-        return shipment
+        if not shipment:
+            raise HTTPException(status_code= 404, detail="shipment not found")
+        
+        logs = await self.status_log.get_logs_by_shipment_id(shipment.id)
+
+        phone = shipment.recipient_phone
+        masked_phone  = f"****{phone[-4:]}" if phone else None
+
+        return {
+            "tracking_number": shipment.tracking_number,
+            "status" : shipment.status,
+            "origin": shipment.origin,
+            "destination" : shipment.destination,
+            "recipient_name": shipment.recipient_name,
+            "recipient_phone": masked_phone,
+            "history" : [
+                {
+                    "status" : log.status,
+                    "location":log.location,
+                    "timestamp": log.timestamp
+                }
+                for log in logs
+            ]
+        }
+        
 
     
 
