@@ -39,11 +39,12 @@ class ShipmentRespository:
         result = (update(Shipments).where(Shipments.id == shipment_id).values( assign_driver_id = driver_id))
         await self.db.execute(result)
 
+    
 
 class StatusLogRepostiry:
     def __init__(self,db:AsyncSession):
         self.db = db
-
+    
     async def create_status_log(self,shipment_id,status,location, user_id):
        log = Shipment_Staus_log(
            shipment_id = shipment_id,
@@ -57,6 +58,9 @@ class StatusLogRepostiry:
     async def get_logs_by_shipment_id(self,shipment_id):
         result = await self.db.execute(select(Shipment_Staus_log).where(Shipment_Staus_log.shipment_id == shipment_id).order_by(Shipment_Staus_log.timestamp.asc()))
         return result.scalars().all()
+    
+
+
     
 
 

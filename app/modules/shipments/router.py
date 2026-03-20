@@ -9,6 +9,8 @@ from .repository import StatusLogRepostiry, ShipmentRespository
 from .dependencies import get_auth_service
 router = APIRouter(prefix="/shipments", tags=["Shipments"])
 
+
+
 @router.post("/")
 async def create_shipment(
     payload : ShipmentCreate,
@@ -38,7 +40,14 @@ async def track_shipment(
 ):
     service = ShipmentsService(db)
     result = await service.get_by_tracking_number(tracking_number)
+
+    
     return result
+
+
+    
+   
+
 
 
 
