@@ -55,6 +55,10 @@ class Shipments(Base):
         String(255),
         nullable=False
     )
+    description : Mapped[str] = mapped_column(
+        String(255), 
+        nullable=False)
+    
     recipient_name  :Mapped[str] = mapped_column(
         String(255),
         nullable=False
@@ -66,6 +70,14 @@ class Shipments(Base):
     delivery_address : Mapped[str] = mapped_column (
         String(255),
         nullable= False
+    )
+    pickup_date : Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+    delivery_date : Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
     )
     weight : Mapped[float] = mapped_column(
         Float,
@@ -104,7 +116,7 @@ class Shipment_Staus_log(Base):
     timestamp : Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),
         server_default= func.now(),
-        updated_at = func.now(),
+        onupdate=func.now(),
         nullable=False
     )
     location : Mapped[str] = mapped_column(

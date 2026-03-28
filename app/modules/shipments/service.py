@@ -13,10 +13,10 @@ class ShipmentsService():
         self.repo = ShipmentRespository(db)
         self.status_log = StatusLogRepostiry(db)
     
-    async def create_shipment(self,tenant_id,origin,destination,weight,recipient_name,recipient_phone,delivery_address,assign_driver_id= None, user_id=None):
+    async def create_shipment(self,tenant_id,origin,destination,weight,recipient_name,recipient_phone,delivery_address,pickup_date,delivery_date,description,assign_driver_id= None, user_id=None):
         tracking_number = f"TRK-{uuid.uuid4().hex[:8].upper()}"
         status =  ShipmentStatus.CREATED
-        shipment = await self.repo.create_shipment(tenant_id,tracking_number,status,origin,destination,weight,recipient_name,recipient_phone,delivery_address,assign_driver_id)
+        shipment = await self.repo.create_shipment(tenant_id,tracking_number,status,origin,destination,weight,recipient_name,recipient_phone,delivery_address,pickup_date,delivery_date,description,assign_driver_id)
         await self.db.flush()
         status_log = await self.status_log.create_status_log(shipment.id,status,origin,user_id)
 

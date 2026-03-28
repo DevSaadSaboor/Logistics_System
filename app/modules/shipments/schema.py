@@ -10,6 +10,9 @@ class ShipmentCreate(BaseModel):
     recipient_phone : str
     weight : float
     delivery_address: str
+    description: str
+    pickup_date: datetime
+    delivery_date: datetime
 
 # Add Custom Pydantic validators 
     @field_validator("weight")
@@ -38,6 +41,19 @@ class ShipmentCreate(BaseModel):
             raise ValueError("Phone number exceeds Maximum Limit")
         return value
    
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, value):
+        if len(value.strip()) < 10:
+            raise ValueError("Description can not be less than 10")
+        return value
+
+    @model_validator(mode="after")
+    def validate_dates(self):
+        if self.pickup_date >= self.delivery_date:
+            raise ValueError("pickup_date must be before delivery_date")
+        return self
+
 
 
 
