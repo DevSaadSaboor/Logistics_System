@@ -24,6 +24,7 @@
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
 - [Database Migrations](#database-migrations)
+- [Testing](#testing)
 - [API Reference](#api-reference)
 - [Authentication](#authentication)
 - [License](#license)
@@ -202,6 +203,22 @@ alembic revision --autogenerate -m "describe your change"
 
 # Rollback one step
 alembic downgrade -1
+```
+
+---
+
+## Testing
+
+The project includes an asynchronous unit testing suite utilizing Python's `unittest` framework to validate services. Our tests execute with isolated database sessions and mock dependencies avoiding unintended database mutations.
+
+### Run tests successfully
+To execute the tests, ensure you are in the virtual environment and run:
+```bash
+python test_shipment_service.py
+```
+Or to run via the `unittest` CLI explicitly for individual test cases:
+```bash
+python -m unittest test_shipment_service.TestShipmentsService.test_create_shipment
 ```
 
 ---
