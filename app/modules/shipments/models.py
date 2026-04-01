@@ -2,7 +2,7 @@ import uuid
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import String,Enum,DateTime,func,ForeignKey,FLOAT,Float
+from sqlalchemy import String,Enum,DateTime,func,ForeignKey,Float
 from app.modules.tenants.models import Tenant
 from datetime import datetime   
 from sqlalchemy import Index
@@ -89,6 +89,17 @@ class Shipments(Base):
         onupdate=func.now(),
         nullable=False
     )
+    category: Mapped[str] = mapped_column(
+        String(50),
+        nullable = False,
+        default="other"
+    )
+    confidence : Mapped[float] = mapped_column(
+        Float,
+        nullable=False,
+        default=0.0
+    )
+   
     assign_driver_id :  Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid = True),
         ForeignKey("users.id"),

@@ -1,7 +1,5 @@
-from .models import Shipments, Shipment_Staus_log
 from .repository import ShipmentRespository,StatusLogRepostiry
-from datetime import datetime,timezone,timedelta
-from sqlalchemy.ext.asyncio import AsyncSession
+from app.modules.AI.categorizer import ShipmentCategorizer
 from fastapi import HTTPException
 from .enum import ShipmentStatus
 from .enum import ShipmentStatus
@@ -14,12 +12,20 @@ class ShipmentsService():
         self.status_log = StatusLogRepostiry(db)
     
     async def create_shipment(self,tenant_id,origin,destination,weight,recipient_name,recipient_phone,delivery_address,pickup_date,delivery_date,description,assign_driver_id= None, user_id=None):
+        categorizer = ShipmentCategorizer()
+        try:
+            result = categorizer.categorize(description)
+            category = result.category 
+            confidence = result.confidence
+        except Exception:
+            category = "other",
+            confidence = 0.0
+
         tracking_number = f"TRK-{uuid.uuid4().hex[:8].upper()}"
         status =  ShipmentStatus.CREATED
-        shipment = await self.repo.create_shipment(tenant_id,tracking_number,status,origin,destination,weight,recipient_name,recipient_phone,delivery_address,pickup_date,delivery_date,description,assign_driver_id)
+        shipment = await self.repo.create_shipment(tenant_id,tracking_number,status,origin,destination,weight,recipient_name,recipient_phone,delivery_address,pickup_date,delivery_date,description,category,confidence,assign_driver_id)
         await self.db.flush()
         status_log = await self.status_log.create_status_log(shipment.id,status,origin,user_id)
-
         await self.db.commit()
         await self.db.refresh(shipment)
         return shipment

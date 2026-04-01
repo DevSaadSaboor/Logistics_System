@@ -12,7 +12,22 @@ class ShipmentCreate(BaseModel):
     delivery_address: str
     description: str
     pickup_date: datetime
+   
+class ShipmentResponse(BaseModel):
+    origin: str
+    destination: str
+    recipient_name: str
+    recipient_phone : str
+    weight : float
+    delivery_address: str
+    description: str
+    pickup_date: datetime
     delivery_date: datetime
+    category:str
+    confidence:float
+
+
+
 
 # Add Custom Pydantic validators 
     @field_validator("weight")
@@ -33,10 +48,8 @@ class ShipmentCreate(BaseModel):
         
         if not value.isdigit():
             raise ValueError("Phone numbers  must contain digits")
-        
         if len(value) < 8:
             raise ValueError("Phone number length must contains 8 digits")
-        
         if len(value) > 20:
             raise ValueError("Phone number exceeds Maximum Limit")
         return value

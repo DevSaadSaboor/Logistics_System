@@ -1,4 +1,4 @@
-from .schema import ShipmentCreate
+from .schema import ShipmentCreate,ShipmentResponse
 from .service import ShipmentsService
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +11,7 @@ router = APIRouter(prefix="/shipments", tags=["Shipments"])
 
 
 
-@router.post("/")
+@router.post("/", response_model=ShipmentResponse)
 async def create_shipment(
     payload : ShipmentCreate,
     tenant = Depends(get_current_tenant),
