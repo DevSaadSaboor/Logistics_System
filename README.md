@@ -45,6 +45,7 @@
 | **Authentication** | JWT access tokens (HS256), secure refresh token rotation with SHA-256 hashing |
 | **Role-Based Access** | `ADMIN`, `OPERATOR`, `VIEWER` roles per tenant |
 | **Shipment Management** | Create shipments, assign drivers, auto-generated tracking numbers |
+| **AI Categorization** | Automatic AI-based shipment categorization using OpenAI API (`gpt-4o-mini`) |
 | **Shipment Tracking** | Real-time status tracking (`CREATED → ASSIGNED → PICKED_UP → IN_TRANSIT → DELIVERED`) |
 | **Status Audit Log** | Full history of status changes with timestamps, location, and responsible user |
 | **Soft Deletes** | Tenants support soft deletion with partial unique indexes |
@@ -62,6 +63,7 @@
 | Database | [PostgreSQL](https://www.postgresql.org/) via `asyncpg` |
 | Migrations | [Alembic](https://alembic.sqlalchemy.org/) |
 | Auth | [python-jose](https://github.com/mpdavis/python-jose) (JWT) + [passlib](https://passlib.readthedocs.io/) (bcrypt) |
+| **AI** | [OpenAI API](https://openai.com/) |
 | Validation | [Pydantic v2](https://docs.pydantic.dev/) |
 | Server | [Uvicorn](https://www.uvicorn.org/) |
 
@@ -110,6 +112,8 @@ logistics_backend/
 │   │       ├── service.py
 │   │       ├── router.py
 │   │       └── dependencies.py
+│   │   └── AI/                  # AI Categorization integration
+│   │       └── categorizer.py
 │   └── shared/
 │       ├── enums.py
 │       └── base_model.py
@@ -163,6 +167,7 @@ Create a `.env` file in the project root:
 ```env
 DATABASE_URL=postgresql+asyncpg://postgres:yourpassword@localhost:5432/logistics
 SECRET_KEY=your-super-secret-key
+OPENAI_API_KEY=your-openai-api-key
 ```
 
 ### 5. Run Database Migrations
@@ -187,6 +192,7 @@ The API will be available at **http://localhost:8000**. Interactive docs are at 
 |---|---|---|
 | `DATABASE_URL` | PostgreSQL async connection string | `postgresql+asyncpg://user:pass@host:5432/db` |
 | `SECRET_KEY` | Secret key for signing JWT tokens | `my-very-secret-key-change-me` |
+| `OPENAI_API_KEY`| OpenAI API Key for shipment categorization | `sk-proj-...` |
 
 ---
 
