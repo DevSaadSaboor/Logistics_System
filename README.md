@@ -18,7 +18,7 @@
 ## 📋 Table of Contents
 
 - [Overview](#overview)
-- [Features](#features)
+- [Features](#features) 
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
@@ -47,6 +47,7 @@
 | **Shipment Management** | Create shipments, assign drivers, auto-generated tracking numbers |
 | **AI Categorization** | Automatic AI-based shipment categorization using OpenAI API (`gpt-4o-mini`) |
 | **Shipment Tracking** | Real-time status tracking (`CREATED → ASSIGNED → PICKED_UP → IN_TRANSIT → DELIVERED`) |
+| **Robust Validation** | Pydantic v2 schemas rigorously strict validation (Weight, Phone constraints, Date chronology) |
 | **Status Audit Log** | Full history of status changes with timestamps, location, and responsible user |
 | **Soft Deletes** | Tenants support soft deletion with partial unique indexes |
 | **Async I/O** | Fully asynchronous with `asyncpg` and SQLAlchemy 2.0 async sessions |
@@ -63,7 +64,7 @@
 | Database | [PostgreSQL](https://www.postgresql.org/) via `asyncpg` |
 | Migrations | [Alembic](https://alembic.sqlalchemy.org/) |
 | Auth | [python-jose](https://github.com/mpdavis/python-jose) (JWT) + [passlib](https://passlib.readthedocs.io/) (bcrypt) |
-| **AI** | [OpenAI API](https://openai.com/) |
+| AI | [OpenAI API](https://openai.com/) (`gpt-4o-mini`) |
 | Validation | [Pydantic v2](https://docs.pydantic.dev/) |
 | Server | [Uvicorn](https://www.uvicorn.org/) |
 
@@ -104,14 +105,14 @@ logistics_backend/
 │   │   │   ├── service.py
 │   │   │   ├── router.py
 │   │   │   └── dependencies.py
-│   │   └── shipments/           # Shipment creation & tracking
-│   │       ├── models.py
-│   │       ├── schema.py
-│   │       ├── enum.py
-│   │       ├── repository.py
-│   │       ├── service.py
-│   │       ├── router.py
-│   │       └── dependencies.py
+│   │   ├── shipments/           # Shipment creation & tracking
+│   │   │   ├── models.py
+│   │   │   ├── schema.py
+│   │   │   ├── enum.py
+│   │   │   ├── repository.py
+│   │   │   ├── service.py
+│   │   │   ├── router.py
+│   │   │   └── dependencies.py
 │   │   └── AI/                  # AI Categorization integration
 │   │       └── categorizer.py
 │   └── shared/
@@ -215,16 +216,18 @@ alembic downgrade -1
 
 ## Testing
 
-The project includes an asynchronous unit testing suite utilizing Python's `unittest` framework to validate services. Our tests execute with isolated database sessions and mock dependencies avoiding unintended database mutations.
+The project includes robust testing suites utilizing Python's `pytest` and `unittest` frameworks. The tests are divided into two main categories:
+1. **Schema Validation Tests (`test_shipment_schema.py`)**: Tests Pydantic data validation logic (weight limits, phone number formats, description requirements, and date chronology) to ensure API request boundaries.
+2. **Service Unit Tests (`test_shipment_service.py`)**: Tests business logic and repository integrations asynchronously using isolated database session mocks.
 
 ### Run tests successfully
-To execute the tests, ensure you are in the virtual environment and run:
+To execute all the tests, ensure you are in the virtual environment and run `pytest`:
 ```bash
-python test_shipment_service.py
+pytest test_shipment_schema.py test_shipment_service.py
 ```
-Or to run via the `unittest` CLI explicitly for individual test cases:
+Or to run via the python module directly:
 ```bash
-python -m unittest test_shipment_service.TestShipmentsService.test_create_shipment
+python -m pytest test_shipment_schema.py test_shipment_service.py
 ```
 
 ---
@@ -259,7 +262,9 @@ python -m unittest test_shipment_service.TestShipmentsService.test_create_shipme
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
 | `POST` | `/shipments/` | Bearer + `X-Tenant-Slug` | Create a new shipment |
-| `GET` | `/shipments/shipments/track/{tracking_number}` | — | Track a shipment by tracking number |
+| `GET` | `/shipments/track/{tracking_number}` | — | Track a shipment by tracking number |
+| `POST` | `/shipments/{shipment_id}/categorize` | Bearer + `X-Tenant-Slug` | Trigger AI categorization for a shipment |
+| `GET` | `/shipments/{shipment_id}/category` | Bearer + `X-Tenant-Slug` | Get AI categorization result for a shipment |
 
 ---
 

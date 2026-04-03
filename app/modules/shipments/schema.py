@@ -1,64 +1,46 @@
-from pydantic import BaseModel,field_validator,model_validator,Field
+from pydantic import BaseModel, field_validator, model_validator
 from datetime import datetime
-import re
+import uuid
 
 
 class ShipmentCreate(BaseModel):
     origin: str
     destination: str
     recipient_name: str
-    recipient_phone : str
-    weight : float
-    delivery_address: str
-    description: str
-    pickup_date: datetime
-   
-class ShipmentResponse(BaseModel):
-    origin: str
-    destination: str
-    recipient_name: str
-    recipient_phone : str
-    weight : float
+    recipient_phone: str
+    weight: float
     delivery_address: str
     description: str
     pickup_date: datetime
     delivery_date: datetime
-    category:str
-    confidence:float
 
-
-
-
-# Add Custom Pydantic validators 
     @field_validator("weight")
     @classmethod
-    def validate_weighr(cls , value):
+    def validate_weight(cls, value):
         if value <= 0:
-            raise ValueError("Weight must be postive")
+            raise ValueError("Weight must be positive")
         if value > 10000:
-            raise ValueError("weight exceed maximum limit")
+            raise ValueError("Weight exceeds maximum limit")
         return value
-
 
     @field_validator("recipient_phone")
     @classmethod
-    def validate_phone(cls,value):
+    def validate_phone(cls, value):
         if not value:
-            raise ValueError("phone number can not be empty")
-        
+            raise ValueError("Phone number can not be empty")
         if not value.isdigit():
-            raise ValueError("Phone numbers  must contain digits")
+            raise ValueError("Phone numbers must contain digits only")
         if len(value) < 8:
-            raise ValueError("Phone number length must contains 8 digits")
+            raise ValueError("Phone number length must contain at least 8 digits")
         if len(value) > 20:
-            raise ValueError("Phone number exceeds Maximum Limit")
+            raise ValueError("Phone number exceeds maximum limit")
         return value
-   
+
     @field_validator("description")
     @classmethod
     def validate_description(cls, value):
         if len(value.strip()) < 10:
-            raise ValueError("Description can not be less than 10")
+            raise ValueError("Description can not be less than 10 characters")
         return value
 
     @model_validator(mode="after")
@@ -68,10 +50,21 @@ class ShipmentResponse(BaseModel):
         return self
 
 
+class ShipmentResponse(BaseModel):
+    id: uuid.UUID
+    tracking_number: str
+    status: str
+    origin: str
+    destination: str
+    recipient_name: str
+    recipient_phone: str
+    weight: float
+    delivery_address: str
+    description: str
+    pickup_date: datetime
+    delivery_date: datetime
+    category: str
+    confidence: float
 
-
-
-
-
-
-    
+    class Config:
+        from_attributes = True

@@ -2,14 +2,9 @@ import uuid
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import String,Enum,DateTime,func,ForeignKey,Float
-from app.modules.tenants.models import Tenant
-from datetime import datetime   
-from sqlalchemy import Index
-from sqlalchemy.sql import expression
-from sqlalchemy.orm import relationship
+from sqlalchemy import String, Enum, DateTime, func, ForeignKey, Float, Boolean, Index
+from datetime import datetime
 from .enum import ShipmentStatus
-from sqlalchemy.dialects.postgresql import UUID
 
 
 class Shipments(Base):
@@ -73,19 +68,19 @@ class Shipments(Base):
     )
     pickup_date : Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        nullable=True
+        nullable=False
     )
     delivery_date : Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        nullable=True
+        nullable=False
     )
     weight : Mapped[float] = mapped_column(
         Float,
         nullable= False
     )
-    update_at : Mapped[DateTime] = mapped_column(
+    updated_at : Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),
-        server_default = func.now(),
+        server_default=func.now(),
         onupdate=func.now(),
         nullable=False
     )
@@ -99,7 +94,16 @@ class Shipments(Base):
         nullable=False,
         default=0.0
     )
-   
+    ai_processed : Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False
+    )
+    ai_processed_at : Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+    
     assign_driver_id :  Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid = True),
         ForeignKey("users.id"),
@@ -137,6 +141,6 @@ class Shipment_Staus_log(Base):
     updated_by_user_id : Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid = True),
         ForeignKey("users.id"),
-        nullable=False
+        nullable=True  # Nullable: user_id is None when shipment is auto-created
     )
 

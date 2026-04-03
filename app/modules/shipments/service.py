@@ -1,7 +1,6 @@
-from .repository import ShipmentRespository,StatusLogRepostiry
+from .repository import ShipmentRespository, StatusLogRepostiry
 from app.modules.AI.categorizer import ShipmentCategorizer
 from fastapi import HTTPException
-from .enum import ShipmentStatus
 from .enum import ShipmentStatus
 import uuid
 
@@ -12,15 +11,14 @@ class ShipmentsService():
         self.status_log = StatusLogRepostiry(db)
     
     async def create_shipment(self,tenant_id,origin,destination,weight,recipient_name,recipient_phone,delivery_address,pickup_date,delivery_date,description,assign_driver_id= None, user_id=None):
-        categorizer = ShipmentCategorizer()
-        try:
-            result = categorizer.categorize(description)
-            category = result.category 
-            confidence = result.confidence
-        except Exception:
-            category = "other",
-            confidence = 0.0
-
+        # categorizer = ShipmentCategorizer()
+        # try:
+        #     result = categorizer.categorize(description)
+        #     category = result.category 
+        #     confidence = result.confidence
+        # except Exception:
+        category = "other"
+        confidence = 0.0
         tracking_number = f"TRK-{uuid.uuid4().hex[:8].upper()}"
         status =  ShipmentStatus.CREATED
         shipment = await self.repo.create_shipment(tenant_id,tracking_number,status,origin,destination,weight,recipient_name,recipient_phone,delivery_address,pickup_date,delivery_date,description,category,confidence,assign_driver_id)
@@ -29,6 +27,23 @@ class ShipmentsService():
         await self.db.commit()
         await self.db.refresh(shipment)
         return shipment
+
+    async def run_ai_categorization(self , shipment_id:int , description:str):
+        categorizer = ShipmentCategorizer()
+        try:
+            result = categorizer.categorize(description)
+            category = result.category
+            confidence = result.confidence
+        except Exception:
+            category = "other"
+            confidence = 0.0
+        
+        await self.repo.update_ai_fields(
+            shipment_id,
+            category,
+            confidence
+        )
+        await self.db.commit()
     
 
     async def update_shipment(self,shipment_id, status):
