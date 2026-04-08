@@ -119,6 +119,9 @@ logistics_backend/
 │       ├── enums.py
 │       └── base_model.py
 ├── migrations/                  # Alembic migration versions
+├── test_shipment_schema.py      # Pydantic schema validation tests
+├── test_shipment_service.py     # Service methods and repository mocks
+├── test_shipment_advanced.py    # Advanced edge cases and formatting
 ├── alembic.ini                  # Alembic configuration
 ├── requirements.txt             # Python dependencies
 ├── docker-compose.yml           # Docker services definition
@@ -135,6 +138,18 @@ logistics_backend/
 - **Python 3.11+**
 - **PostgreSQL 15+** (running locally or via Docker)
 - **pip** or **virtualenv**
+- **Docker & Docker Compose** (optional)
+
+### 0. Quick Start with Docker
+
+The easiest way to run the application is with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+The API will be available at **http://localhost:8000**.
+Or follow the manual setup steps below.
 
 ### 1. Clone the Repository
 
@@ -216,18 +231,19 @@ alembic downgrade -1
 
 ## Testing
 
-The project includes robust testing suites utilizing Python's `pytest` and `unittest` frameworks. The tests are divided into two main categories:
+The project includes robust testing suites utilizing Python's `pytest` and `unittest` frameworks. The tests are divided into three main categories:
 1. **Schema Validation Tests (`test_shipment_schema.py`)**: Tests Pydantic data validation logic (weight limits, phone number formats, description requirements, and date chronology) to ensure API request boundaries.
 2. **Service Unit Tests (`test_shipment_service.py`)**: Tests business logic and repository integrations asynchronously using isolated database session mocks.
+3. **Advanced Tests (`test_shipment_advanced.py`)**: Tests boundary values, ORM serialization, AI fallbacks, data masking, and history tracking rules.
 
 ### Run tests successfully
 To execute all the tests, ensure you are in the virtual environment and run `pytest`:
 ```bash
-pytest test_shipment_schema.py test_shipment_service.py
+pytest -v
 ```
 Or to run via the python module directly:
 ```bash
-python -m pytest test_shipment_schema.py test_shipment_service.py
+python -m pytest test_shipment_schema.py test_shipment_service.py test_shipment_advanced.py -v
 ```
 
 ---

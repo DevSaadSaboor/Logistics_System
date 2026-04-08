@@ -11,12 +11,10 @@ class Shipments(Base):
     __tablename__ = "shipments"
 
     __table_args__ = (
-        Index(
-            "Shipment_tracking_number",
-            "tracking_number",
-            unique=True
-        ),
+        Index("ix_shipments_tenant_status", "tenant_id", "status"),
+        Index("ix_shipment_tenant_created_at", "tenant_id", "created_at")
     )
+    
     id : Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid= True),
         primary_key=True,
@@ -25,6 +23,7 @@ class Shipments(Base):
     tenant_id : Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("tenants.id"),
+        index = True,
         nullable=False
     )
 
@@ -34,6 +33,8 @@ class Shipments(Base):
     )
     tracking_number : Mapped[str] = mapped_column(
         String(255),
+        unique=True,
+        index=True,
         nullable=False
     )
     
@@ -141,6 +142,6 @@ class Shipment_Staus_log(Base):
     updated_by_user_id : Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid = True),
         ForeignKey("users.id"),
-        nullable=True  # Nullable: user_id is None when shipment is auto-created
+        nullable=True 
     )
 

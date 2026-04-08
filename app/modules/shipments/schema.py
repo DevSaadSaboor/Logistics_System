@@ -1,19 +1,19 @@
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from datetime import datetime
 import uuid
+from .enum import ShipmentStatus
 
 
 class ShipmentCreate(BaseModel):
     origin: str
     destination: str
     recipient_name: str
-    recipient_phone: str
-    weight: float
+    recipient_phone : str
+    weight : float
     delivery_address: str
+    delivery_date:datetime
     description: str
     pickup_date: datetime
-    delivery_date: datetime
-
     @field_validator("weight")
     @classmethod
     def validate_weight(cls, value):
@@ -48,6 +48,10 @@ class ShipmentCreate(BaseModel):
         if self.pickup_date >= self.delivery_date:
             raise ValueError("pickup_date must be before delivery_date")
         return self
+    
+class UpdateShipmentStatus(BaseModel):
+    # Keep backward compatibility for clients still sending {"status": "..."}.
+    new_status: ShipmentStatus = Field(validation_alias="status")
 
 
 class ShipmentResponse(BaseModel):

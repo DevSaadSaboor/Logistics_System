@@ -8,10 +8,8 @@ class ShipmentRespository:
     def __init__(self,db:AsyncSession):
         self.db = db
 
-    async def create_shipment(self, tenant_id, tracking_number, status, origin, destination,
-                              weight, recipient_name, recipient_phone, delivery_address,
-                              pickup_date, delivery_date, description, category, confidence,
-                              assign_driver_id=None):
+    async def create_shipment(self, tenant_id, tracking_number, status, origin, destination,weight, recipient_name, recipient_phone, 
+                              delivery_address,pickup_date, delivery_date, description, category, confidence,assign_driver_id=None):
         shipment = Shipments(
             tenant_id=tenant_id,
             tracking_number=tracking_number,
@@ -32,11 +30,10 @@ class ShipmentRespository:
         self.db.add(shipment)
         return shipment
 
-    # Renamed to update_ai_fields (plural) to match service.py call + fixed WHERE clause
     async def update_ai_fields(self, shipment_id, category, confidence):
         stmt = (
             update(Shipments)
-            .where(Shipments.id == shipment_id)  # Fixed: was "shipment_id == shipment_id" (always True)
+            .where(Shipments.id == shipment_id) 
             .values(category=category, confidence=confidence, ai_processed=True, ai_processed_at=func.now())
         )
         await self.db.execute(stmt)
@@ -66,6 +63,12 @@ class ShipmentRespository:
         await self.db.execute(result)
 
     
+    async def get_by_id_for_update(self,shipment_id,tenant_id):
+        result = await self.db.execute (select(Shipments).where(Shipments.id == shipment_id)
+        .where(Shipments.tenant_id == tenant_id).with_for_update())
+
+        return result.scalars().first()
+
 
 class StatusLogRepostiry:
     def __init__(self,db:AsyncSession):
@@ -82,7 +85,8 @@ class StatusLogRepostiry:
        return log
     
     async def get_logs_by_shipment_id(self,shipment_id):
-        result = await self.db.execute(select(Shipment_Staus_log).where(Shipment_Staus_log.shipment_id == shipment_id).order_by(Shipment_Staus_log.timestamp.asc()))
+        result = await self.db.execute(select(Shipment_Staus_log).where(Shipment_Staus_log.shipment_id == shipment_id)
+        .order_by(Shipment_Staus_log.timestamp.asc()))
         return result.scalars().all()
     
 

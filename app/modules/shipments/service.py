@@ -10,13 +10,42 @@ class ShipmentsService():
         self.repo = ShipmentRespository(db)
         self.status_log = StatusLogRepostiry(db)
     
+    ALLOWED_TRANSITIONS = {
+    "CREATED": ["ASSIGNED"],
+    "ASSIGNED": ["PICKED_UP"],
+    "PICKED_UP": ["IN_TRANSIT"],
+    "IN_TRANSIT": ["DELIVERED"],
+    "DELIVERED": []
+    }
+    async def update_status(self,shipment_id,tenant_id,new_status,user_id):
+        shipment  = await self.repo.get_by_id_for_update(shipment_id,tenant_id)
+        if not shipment:
+            raise HTTPException(status_code= 404, detail="shipment not found")
+        current_status = shipment.status
+        current_status_value = current_status.value
+        new_status_value = new_status.value if hasattr(new_status,"value") else new_status
+
+        if current_status == new_status:
+            raise HTTPException(status_code=400 , detail="status already set")
+        allowed = self.ALLOWED_TRANSITIONS.get(current_status.value,[])
+        if new_status not in allowed:
+            raise HTTPException(status_code=400 ,detail=f"Invalid transition from {current_status} to {new_status}")
+        shipment.status = new_status
+
+        await self.db.flush()
+        await self.status_log.create_status_log(
+            shipment.id,
+            new_status,
+            shipment.destination,
+            user_id
+        )
+        await self.db.commit()
+        return shipment
+
+
+
+    
     async def create_shipment(self,tenant_id,origin,destination,weight,recipient_name,recipient_phone,delivery_address,pickup_date,delivery_date,description,assign_driver_id= None, user_id=None):
-        # categorizer = ShipmentCategorizer()
-        # try:
-        #     result = categorizer.categorize(description)
-        #     category = result.category 
-        #     confidence = result.confidence
-        # except Exception:
         category = "other"
         confidence = 0.0
         tracking_number = f"TRK-{uuid.uuid4().hex[:8].upper()}"
@@ -37,7 +66,6 @@ class ShipmentsService():
         except Exception:
             category = "other"
             confidence = 0.0
-        
         await self.repo.update_ai_fields(
             shipment_id,
             category,

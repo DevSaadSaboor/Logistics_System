@@ -1,4 +1,3 @@
-
 import enum
 
 class ShipmentStatus(str, enum.Enum):
