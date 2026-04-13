@@ -43,7 +43,7 @@ class TestShipmentsService(unittest.IsolatedAsyncioTestCase):
         # Execution
         result = await self.service.create_shipment(
             tenant_id, origin, destination, weight, recipient_name,
-            recipient_phone, delivery_address, pickup_date, delivery_date, description
+            recipient_phone, delivery_address, pickup_date, description
         )
         
         # Assertions
@@ -61,7 +61,7 @@ class TestShipmentsService(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(args[7], recipient_phone)
         self.assertEqual(args[8], delivery_address)
         self.assertEqual(args[9], pickup_date)
-        self.assertEqual(args[10], delivery_date)
+        # delivery_date is automatically calculated so we can't assert simple equality to a mock delivery_date
         self.assertEqual(args[11], description)
         self.assertEqual(args[12], "other")  # category
         self.assertEqual(args[13], 0.0)      # confidence

@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import datetime
 from app.modules.shipments.service import ShipmentsService 
 
 
@@ -22,8 +23,7 @@ async def test_create_shipment_default_values():
         recipient_name="John",
         recipient_phone="12345678",
         delivery_address="Address",
-        pickup_date="2025-01-01",
-        delivery_date="2025-01-02",
+        pickup_date=datetime(2025, 1, 1),
         description="test"
     )
 
@@ -47,7 +47,7 @@ async def test_run_ai_categorization():
             confidence=0.9
         )
 
-        await service.run_ai_categorization(1, "iphone")
+        await service.run_ai_categorization(1, 1, "iphone")
 
         service.repo.update_ai_fields.assert_called_once()
 

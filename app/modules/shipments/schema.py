@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 from datetime import datetime
 import uuid
 from .enum import ShipmentStatus
@@ -11,7 +11,6 @@ class ShipmentCreate(BaseModel):
     recipient_phone : str
     weight : float
     delivery_address: str
-    delivery_date:datetime
     description: str
     pickup_date: datetime
     @field_validator("weight")
@@ -43,11 +42,7 @@ class ShipmentCreate(BaseModel):
             raise ValueError("Description can not be less than 10 characters")
         return value
 
-    @model_validator(mode="after")
-    def validate_dates(self):
-        if self.pickup_date >= self.delivery_date:
-            raise ValueError("pickup_date must be before delivery_date")
-        return self
+
     
 class UpdateShipmentStatus(BaseModel):
     # Keep backward compatibility for clients still sending {"status": "..."}.
@@ -66,9 +61,14 @@ class ShipmentResponse(BaseModel):
     delivery_address: str
     description: str
     pickup_date: datetime
-    delivery_date: datetime
+    expected_delivery_date: datetime
     category: str
     confidence: float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+class SimilarShipmentResponse(BaseModel):
+    shipment: ShipmentResponse
+    similarity: float
+    
+    model_config = ConfigDict(from_attributes=True)

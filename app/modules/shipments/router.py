@@ -1,4 +1,4 @@
-from .schema import ShipmentCreate, ShipmentResponse,UpdateShipmentStatus
+from .schema import ShipmentCreate, ShipmentResponse,UpdateShipmentStatus,SimilarShipmentResponse
 from .service import ShipmentsService
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,13 +48,14 @@ async def create_shipment(
         recipient_phone=payload.recipient_phone,
         delivery_address=payload.delivery_address,
         pickup_date=payload.pickup_date,
-        delivery_date= payload.delivery_date,
         description= payload.description,
         user_id=user.id
     )
+    ai_service = ShipmentAiService(db)
     background_tasks.add_task(
-        service.run_ai_categorization,
+        ai_service.categorizer_and_update_shipment,
         shipment.id,
+        tenant.id,
         payload.description
     )
     return shipment
@@ -100,6 +101,26 @@ async def get_category_result(
         "ai_processed_at": shipment.ai_processed_at
     }
 
+@router.get("/{shipment_id}/similar", response_model=list[SimilarShipmentResponse])
+async def similar_shipments(
+    shipment_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    tenant=Depends(get_current_tenant),
+    min_similarity = 0.7,
+    limit = 5,
+    offset = 0
+):
+    service = ShipmentsService(db)
+
+    result = await service.get_similar_shipment(
+        shipment_id,
+        tenant.id,
+        min_similarity,
+        limit,
+        offset
+    )
+
+    return result
 
 @router.get("/track/{tracking_number}") 
 async def track_shipment(

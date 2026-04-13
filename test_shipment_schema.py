@@ -13,8 +13,7 @@ def test_valid_shipment_create():
         "weight": 10.5,
         "delivery_address": "123 Main St",
         "description": "Fragile electronics equipment",
-        "pickup_date": now,
-        "delivery_date": now + timedelta(days=5)
+        "pickup_date": now
     }
     shipment = ShipmentCreate(**valid_data)
     assert shipment.weight == 10.5
@@ -30,8 +29,7 @@ def test_invalid_weight():
         "weight": -5.0,  # Invalid
         "delivery_address": "123 Main St",
         "description": "Fragile electronics equipment",
-        "pickup_date": now,
-        "delivery_date": now + timedelta(days=5)
+        "pickup_date": now
     }
     with pytest.raises(ValidationError) as exc:
         ShipmentCreate(**invalid_data)
@@ -56,8 +54,7 @@ def test_invalid_phone():
         "weight": 10.5,
         "delivery_address": "123 Main St",
         "description": "Fragile electronics equipment",
-        "pickup_date": now,
-        "delivery_date": now + timedelta(days=5)
+        "pickup_date": now
     }
 
     # Too short
@@ -85,31 +82,9 @@ def test_invalid_description():
         "weight": 10.5,
         "delivery_address": "123 Main St",
         "description": "Short",  # Target: < 10 chars
-        "pickup_date": now,
-        "delivery_date": now + timedelta(days=5)
+        "pickup_date": now
     }
     with pytest.raises(ValidationError) as exc:
         ShipmentCreate(**invalid_data)
     assert "Description can not be less than 10 characters" in str(exc.value)
 
-def test_invalid_dates():
-    now = datetime.now()
-    base = {
-        "origin": "New York, NY",
-        "destination": "Los Angeles, CA",
-        "recipient_name": "Jane Doe",
-        "recipient_phone": "1234567890",
-        "weight": 10.5,
-        "delivery_address": "123 Main St",
-        "description": "Fragile electronics equipment",
-    }
-
-    # Delivery before pickup
-    with pytest.raises(ValidationError) as exc:
-        ShipmentCreate(**{**base, "pickup_date": now + timedelta(days=5), "delivery_date": now})
-    assert "pickup_date must be before delivery_date" in str(exc.value)
-
-    # Boundary: equal dates should also fail
-    with pytest.raises(ValidationError) as exc:
-        ShipmentCreate(**{**base, "pickup_date": now, "delivery_date": now})
-    assert "pickup_date must be before delivery_date" in str(exc.value)

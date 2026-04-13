@@ -38,7 +38,6 @@ def _base_create_data(now=None):
         "delivery_address": "123 Main St",
         "description": "Fragile electronics equipment",
         "pickup_date": now,
-        "delivery_date": now + timedelta(days=5),
     }
 
 
@@ -110,7 +109,7 @@ def test_shipment_response_from_orm_dict():
         "delivery_address": "456 Oak Ave",
         "description": "Standard package delivery",
         "pickup_date": now,
-        "delivery_date": now + timedelta(days=3),
+        "expected_delivery_date": now + timedelta(days=3),
         "category": "electronics",
         "confidence": 0.95,
     }
@@ -136,7 +135,7 @@ def test_shipment_response_from_orm_object():
     orm_obj.delivery_address = "789 Elm St"
     orm_obj.description = "Electronics shipment goods"
     orm_obj.pickup_date = now
-    orm_obj.delivery_date = now + timedelta(days=2)
+    orm_obj.expected_delivery_date = now + timedelta(days=2)
     orm_obj.category = "electronics"
     orm_obj.confidence = 0.87
 
@@ -164,7 +163,7 @@ class TestTrackingNumberFormat(unittest.IsolatedAsyncioTestCase):
 
         await self.service.create_shipment(
             1, "NY", "LA", 5.0, "John", "12345678",
-            "123 St", datetime(2025, 1, 1), datetime(2025, 1, 5), "Test description here"
+            "123 St", datetime(2025, 1, 1), "Test description here"
         )
 
         tracking_number = self.service.repo.create_shipment.call_args[0][1]
@@ -183,7 +182,7 @@ class TestTrackingNumberFormat(unittest.IsolatedAsyncioTestCase):
             tenant_id=1, origin="NY", destination="LA", weight=5.0,
             recipient_name="John", recipient_phone="12345678",
             delivery_address="123 St", pickup_date=datetime(2025, 1, 1),
-            delivery_date=datetime(2025, 1, 5), description="Test description here"
+            description="Test description here"
         )
 
         await self.service.create_shipment(**kwargs)
@@ -216,7 +215,7 @@ class TestAiCategorization(unittest.IsolatedAsyncioTestCase):
             mock_result.confidence = 0.92
             MockCat.return_value.categorize.return_value = mock_result
 
-            await self.service.run_ai_categorization(shipment_id=5, description="MacBook Pro laptop")
+            await self.service.run_ai_categorization(shipment_id=5, tenant_id=1, description="MacBook Pro laptop")
 
         self.service.repo.update_ai_fields.assert_called_once_with(5, "electronics", 0.92)
         self.mock_db.commit.assert_called_once()
@@ -226,7 +225,7 @@ class TestAiCategorization(unittest.IsolatedAsyncioTestCase):
         with patch("app.modules.shipments.service.ShipmentCategorizer") as MockCat:
             MockCat.return_value.categorize.side_effect = RuntimeError("AI service down")
 
-            await self.service.run_ai_categorization(shipment_id=7, description="Unknown item")
+            await self.service.run_ai_categorization(shipment_id=7, tenant_id=1, description="Unknown item")
 
         self.service.repo.update_ai_fields.assert_called_once_with(7, "other", 0.0)
         self.mock_db.commit.assert_called_once()
@@ -345,7 +344,6 @@ class TestCreateShipmentWithUser(unittest.IsolatedAsyncioTestCase):
             tenant_id=1, origin="NY", destination="LA", weight=5.0,
             recipient_name="John", recipient_phone="12345678",
             delivery_address="123 St", pickup_date=datetime(2025, 1, 1),
-            delivery_date=datetime(2025, 1, 5),
             description="Test description here",
             user_id=999
         )

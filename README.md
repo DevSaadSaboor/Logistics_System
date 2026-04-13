@@ -1,321 +1,395 @@
-<p align="center">
-  <h1 align="center">📦 Logistics System — Backend API</h1>
-  <p align="center">
-    A multi-tenant logistics and shipment management REST API built with FastAPI, SQLAlchemy, and PostgreSQL.
-  </p>
-</p>
+# Logistics Backend
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python" />
-  <img src="https://img.shields.io/badge/FastAPI-0.133-009688?logo=fastapi&logoColor=white" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/PostgreSQL-15+-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL" />
-  <img src="https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?logo=sqlalchemy&logoColor=white" alt="SQLAlchemy" />
-  <img src="https://img.shields.io/badge/Alembic-Migrations-6BA81E" alt="Alembic" />
-</p>
-
----
-
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [Features](#features) 
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
-- [Database Migrations](#database-migrations)
-- [Testing](#testing)
-- [API Reference](#api-reference)
-- [Authentication](#authentication)
-- [License](#license)
-
----
+FastAPI backend for a multi-tenant logistics system with tenant management, JWT authentication, shipment tracking, AI-based shipment categorization, and vector-similarity search.
 
 ## Overview
 
-**Logistics System** is a backend API designed for managing logistics operations across multiple tenants. Each tenant operates in an isolated context, with their own users, shipments, and tracking data. The system supports full shipment lifecycle management — from creation to delivery — with role-based access control, JWT authentication, and real-time status tracking.
+This project provides a REST API for:
 
----
+- managing tenants
+- registering and authenticating users per tenant
+- creating and tracking shipments with auto-calculated expected delivery dates
+- updating shipment status through a defined lifecycle
+- categorizing shipments with OpenAI when an API key is configured
+- finding similar shipments using pgvector cosine-distance search
 
-## Features
+The API is built with asynchronous SQLAlchemy sessions and PostgreSQL, and uses Alembic for schema migrations.
 
-| Category | Details |
-|---|---|
-| **Multi-Tenancy** | Tenant isolation via slug-based headers (`X-Tenant-Slug`), soft-delete support |
-| **Authentication** | JWT access tokens (HS256), secure refresh token rotation with SHA-256 hashing |
-| **Role-Based Access** | `ADMIN`, `OPERATOR`, `VIEWER` roles per tenant |
-| **Shipment Management** | Create shipments, assign drivers, auto-generated tracking numbers |
-| **AI Categorization** | Automatic AI-based shipment categorization using OpenAI API (`gpt-4o-mini`) |
-| **Shipment Tracking** | Real-time status tracking (`CREATED → ASSIGNED → PICKED_UP → IN_TRANSIT → DELIVERED`) |
-| **Robust Validation** | Pydantic v2 schemas rigorously strict validation (Weight, Phone constraints, Date chronology) |
-| **Status Audit Log** | Full history of status changes with timestamps, location, and responsible user |
-| **Soft Deletes** | Tenants support soft deletion with partial unique indexes |
-| **Async I/O** | Fully asynchronous with `asyncpg` and SQLAlchemy 2.0 async sessions |
-| **Database Migrations** | Versioned schema migrations via Alembic |
-
----
-
-## Tech Stack
+## Stack
 
 | Layer | Technology |
 |---|---|
-| Framework | [FastAPI](https://fastapi.tiangolo.com/) |
-| ORM | [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (async) |
-| Database | [PostgreSQL](https://www.postgresql.org/) via `asyncpg` |
-| Migrations | [Alembic](https://alembic.sqlalchemy.org/) |
-| Auth | [python-jose](https://github.com/mpdavis/python-jose) (JWT) + [passlib](https://passlib.readthedocs.io/) (bcrypt) |
-| AI | [OpenAI API](https://openai.com/) (`gpt-4o-mini`) |
-| Validation | [Pydantic v2](https://docs.pydantic.dev/) |
-| Server | [Uvicorn](https://www.uvicorn.org/) |
-
----
+| Language | Python 3.11+ |
+| Framework | FastAPI |
+| ORM | SQLAlchemy 2.x async |
+| Database | PostgreSQL with `asyncpg` |
+| Vector Search | `pgvector` + `pgvector[sqlalchemy]` |
+| Migrations | Alembic |
+| Validation | Pydantic v2 |
+| Auth | `python-jose` + `passlib[bcrypt]` |
+| AI | OpenAI SDK (embeddings + categorization) |
+| Retry logic | `tenacity` |
+| Testing | `pytest` + `pytest-asyncio` |
+| Logging | `python-json-logger` |
 
 ## Project Structure
 
-```
+```text
 logistics_backend/
+├── alembic.ini
+├── docker-compose.yml
+├── requirements.txt
 ├── app/
-│   ├── main.py                  # Application entry point & router registration
+│   ├── main.py
 │   ├── core/
-│   │   ├── config.py            # Environment settings (DATABASE_URL, SECRET_KEY)
-│   │   ├── database.py          # Async engine, session factory, get_db dependency
-│   │   ├── dependencies.py      # get_current_user & get_current_tenant guards
-│   │   ├── security.py          # Password hashing, JWT creation & verification
-│   │   ├── base.py              # TimeStampMixIn (created_at, updated_at, deleted_at)
-│   │   └── utility.py           # Shared utility functions
-│   ├── modules/
-│   │   ├── tenants/             # Tenant CRUD (create, list, soft-delete)
-│   │   │   ├── models.py
-│   │   │   ├── schema.py
-│   │   │   ├── repository.py
-│   │   │   ├── service.py
-│   │   │   ├── router.py
-│   │   │   └── dependencies.py
-│   │   ├── users/               # User registration & login
-│   │   │   ├── models.py
-│   │   │   ├── schema.py
-│   │   │   ├── respository.py
-│   │   │   ├── service.py
-│   │   │   ├── router.py
-│   │   │   └── dependencies.py
-│   │   ├── auth/                # Token refresh & current user endpoints
-│   │   │   ├── models.py
-│   │   │   ├── schema.py
-│   │   │   ├── repository.py
-│   │   │   ├── service.py
-│   │   │   ├── router.py
-│   │   │   └── dependencies.py
-│   │   ├── shipments/           # Shipment creation & tracking
-│   │   │   ├── models.py
-│   │   │   ├── schema.py
-│   │   │   ├── enum.py
-│   │   │   ├── repository.py
-│   │   │   ├── service.py
-│   │   │   ├── router.py
-│   │   │   └── dependencies.py
-│   │   └── AI/                  # AI Categorization integration
-│   │       └── categorizer.py
-│   └── shared/
-│       ├── enums.py
-│       └── base_model.py
-├── migrations/                  # Alembic migration versions
-├── test_shipment_schema.py      # Pydantic schema validation tests
-├── test_shipment_service.py     # Service methods and repository mocks
-├── test_shipment_advanced.py    # Advanced edge cases and formatting
-├── alembic.ini                  # Alembic configuration
-├── requirements.txt             # Python dependencies
-├── docker-compose.yml           # Docker services definition
-├── .env                         # Environment variables (not committed)
-└── .gitignore
+│   │   ├── base.py
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   ├── dependencies.py
+│   │   ├── security.py
+│   │   └── utility.py
+│   └── modules/
+│       ├── AI/
+│       │   └── categorizer.py
+│       ├── auth/
+│       │   ├── dependencies.py
+│       │   ├── models.py
+│       │   ├── repository.py
+│       │   ├── router.py
+│       │   ├── schema.py
+│       │   └── service.py
+│       ├── shipments/
+│       │   ├── ai_service.py
+│       │   ├── enum.py
+│       │   ├── models.py
+│       │   ├── repository.py
+│       │   ├── router.py
+│       │   ├── schema.py
+│       │   └── service.py
+│       ├── tenants/
+│       │   ├── models.py
+│       │   ├── repository.py
+│       │   ├── router.py
+│       │   ├── schema.py
+│       │   └── service.py
+│       └── users/
+├── migrations/
+├── test/
+│   └── test_shipmentservice.py
+├── test_shipment_schema.py
+├── test_shipment_service.py
+└── test_shipment_advanced.py
 ```
 
----
+## Setup
 
-## Getting Started
-
-### Prerequisites
-
-- **Python 3.11+**
-- **PostgreSQL 15+** (running locally or via Docker)
-- **pip** or **virtualenv**
-- **Docker & Docker Compose** (optional)
-
-### 0. Quick Start with Docker
-
-The easiest way to run the application is with Docker Compose:
+### 1. Create a virtual environment
 
 ```bash
-docker compose up --build
+python -m venv venv
 ```
 
-The API will be available at **http://localhost:8000**.
-Or follow the manual setup steps below.
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/DevSaadSaboor/Logistics_System.git
-cd Logistics_System
-```
-
-### 2. Create & Activate Virtual Environment
+Activate it:
 
 ```bash
 # Windows
-python -m venv venv
 venv\Scripts\activate
 
 # macOS / Linux
-python3 -m venv venv
 source venv/bin/activate
 ```
 
-### 3. Install Dependencies
+### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Set Up Environment Variables
+### 3. Configure environment variables
 
 Create a `.env` file in the project root:
 
 ```env
 DATABASE_URL=postgresql+asyncpg://postgres:yourpassword@localhost:5432/logistics
-SECRET_KEY=your-super-secret-key
-OPENAI_API_KEY=your-openai-api-key
+SECRET_KEY=change-me
+OPENAI_API_KEY=sk-...
 ```
 
-### 5. Run Database Migrations
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | ✅ | Async PostgreSQL connection string |
+| `SECRET_KEY` | ✅ | Used for JWT signing |
+| `OPENAI_API_KEY` | ❌ | Enables AI categorization and embedding generation |
+
+### 4. Enable pgvector
+
+The `embedding` column uses the `pgvector` PostgreSQL extension. Enable it once in your database:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+### 5. Run migrations
 
 ```bash
 alembic upgrade head
 ```
 
-### 6. Start the Server
+### 6. Start the API
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-The API will be available at **http://localhost:8000**. Interactive docs are at **http://localhost:8000/docs**.
+Swagger docs will be available at `http://127.0.0.1:8000/docs`.
 
----
+## Docker
 
-## Environment Variables
+You can also run the project with Docker Compose:
 
-| Variable | Description | Example |
+```bash
+docker compose up --build
+```
+
+The compose file starts:
+
+- PostgreSQL on `localhost:5432`
+- FastAPI on `localhost:8000`
+
+## Authentication and Tenant Context
+
+This API is multi-tenant. Some endpoints require the `X-Tenant-Slug` header so the request can be resolved to the correct tenant.
+
+Protected endpoints also require a bearer token:
+
+```text
+Authorization: Bearer <access_token>
+```
+
+**Typical flow:**
+
+1. Create a tenant via `POST /tenants/`.
+2. Register a user with that tenant's slug in the `X-Tenant-Slug` header.
+3. Log in with the same header to receive an access token.
+4. Call protected shipment endpoints with both the bearer token and the tenant header.
+
+## Shipment Lifecycle
+
+Supported statuses and their allowed transitions:
+
+```
+CREATED → ASSIGNED → PICKED_UP → IN_TRANSIT → DELIVERED
+```
+
+To advance a shipment's status, send a `PATCH` request with the `status` field:
+
+```json
+{ "status": "ASSIGNED" }
+```
+
+## AI Categorization
+
+When a shipment is created, the API schedules background categorization using the shipment's description. You can also trigger it manually.
+
+**Supported categories:**
+
+| Category | Description |
+|---|---|
+| `electronics` | Electronic devices and components |
+| `perishable` | Food and temperature-sensitive goods |
+| `documents` | Paperwork and legal materials |
+| `furniture` | Large household or office items |
+| `hazardous` | Dangerous or regulated materials |
+| `clothing` | Garments and textiles |
+| `other` | Default fallback category |
+
+If `OPENAI_API_KEY` is missing or categorization fails, the shipment defaults to `category = "other"` and `confidence = 0.0`. The `ai_processed` flag tracks whether categorization has completed.
+
+## Vector Similarity Search
+
+After a shipment is categorized, the AI service also generates a 1536-dimension OpenAI embedding from the shipment's description and stores it in the `embedding` column (pgvector `vector(1536)` type).
+
+The `/similar` endpoint uses cosine distance (`<=>`) on these embeddings to return the most semantically similar shipments within the same tenant.
+
+**How similarity is calculated:**
+
+```
+similarity = 1 - cosine_distance(query_embedding, candidate_embedding)
+```
+
+A value of `1.0` means identical, `0.0` means completely unrelated. By default only results with `similarity >= 0.7` are returned.
+
+## API Endpoints
+
+### Health
+
+| Method | Path | Description |
 |---|---|---|
-| `DATABASE_URL` | PostgreSQL async connection string | `postgresql+asyncpg://user:pass@host:5432/db` |
-| `SECRET_KEY` | Secret key for signing JWT tokens | `my-very-secret-key-change-me` |
-| `OPENAI_API_KEY`| OpenAI API Key for shipment categorization | `sk-proj-...` |
-
----
-
-## Database Migrations
-
-This project uses **Alembic** for versioned database migrations.
-
-```bash
-# Apply all migrations
-alembic upgrade head
-
-# Create a new migration after model changes
-alembic revision --autogenerate -m "describe your change"
-
-# Rollback one step
-alembic downgrade -1
-```
-
----
-
-## Testing
-
-The project includes robust testing suites utilizing Python's `pytest` and `unittest` frameworks. The tests are divided into three main categories:
-1. **Schema Validation Tests (`test_shipment_schema.py`)**: Tests Pydantic data validation logic (weight limits, phone number formats, description requirements, and date chronology) to ensure API request boundaries.
-2. **Service Unit Tests (`test_shipment_service.py`)**: Tests business logic and repository integrations asynchronously using isolated database session mocks.
-3. **Advanced Tests (`test_shipment_advanced.py`)**: Tests boundary values, ORM serialization, AI fallbacks, data masking, and history tracking rules.
-
-### Run tests successfully
-To execute all the tests, ensure you are in the virtual environment and run `pytest`:
-```bash
-pytest -v
-```
-Or to run via the python module directly:
-```bash
-python -m pytest test_shipment_schema.py test_shipment_service.py test_shipment_advanced.py -v
-```
-
----
-
-## API Reference
-
-### Health Check
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/` | Returns `{"message": "Backend is running"}` |
+| `GET` | `/` | Health check |
 
 ### Tenants
 
-| Method | Endpoint | Description |
+| Method | Path | Description |
 |---|---|---|
 | `POST` | `/tenants/` | Create a new tenant |
 | `GET` | `/tenants/` | List all tenants |
 | `DELETE` | `/tenants/{tenant_id}` | Soft-delete a tenant |
 
-### Users / Auth
+### Auth
 
-| Method | Endpoint | Headers | Description |
+| Method | Path | Description | Auth required |
 |---|---|---|---|
-| `POST` | `/auth/register` | `X-Tenant-Slug` | Register a new user under a tenant |
-| `POST` | `/auth/login` | `X-Tenant-Slug` | Login and receive JWT + refresh token |
-| `GET` | `/auth/me` | `Authorization: Bearer <token>` | Get current authenticated user |
-| `POST` | `/auth/refresh` | `X-Tenant-Slug` | Refresh an expired access token |
+| `POST` | `/auth/register` | Register a user for a tenant | `X-Tenant-Slug` |
+| `POST` | `/auth/login` | Log in and receive tokens | `X-Tenant-Slug` |
+| `GET` | `/auth/me` | Get current authenticated user | Bearer + `X-Tenant-Slug` |
+| `POST` | `/auth/refresh` | Refresh access token | Bearer |
 
 ### Shipments
 
-| Method | Endpoint | Auth | Description |
+| Method | Path | Description | Auth required |
 |---|---|---|---|
-| `POST` | `/shipments/` | Bearer + `X-Tenant-Slug` | Create a new shipment |
-| `GET` | `/shipments/track/{tracking_number}` | — | Track a shipment by tracking number |
-| `POST` | `/shipments/{shipment_id}/categorize` | Bearer + `X-Tenant-Slug` | Trigger AI categorization for a shipment |
-| `GET` | `/shipments/{shipment_id}/category` | Bearer + `X-Tenant-Slug` | Get AI categorization result for a shipment |
+| `POST` | `/shipments/` | Create a shipment | Bearer + `X-Tenant-Slug` |
+| `PATCH` | `/shipments/{shipment_id}/status` | Update shipment status | Bearer + `X-Tenant-Slug` |
+| `GET` | `/shipments/track/{tracking_number}` | Public tracking lookup | — |
+| `POST` | `/shipments/{shipment_id}/categorize` | Trigger AI categorization | Bearer + `X-Tenant-Slug` |
+| `GET` | `/shipments/{shipment_id}/category` | Get categorization result | Bearer + `X-Tenant-Slug` |
+| `GET` | `/shipments/{shipment_id}/similar` | Find similar shipments by embedding | Bearer + `X-Tenant-Slug` |
 
----
+#### `GET /shipments/{shipment_id}/similar` — Query Parameters
 
-## Authentication
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `min_similarity` | `float` | `0.7` | Minimum cosine similarity score (0.0–1.0) |
+| `limit` | `int` | `5` | Maximum number of results to return |
+| `offset` | `int` | `0` | Number of results to skip (for pagination) |
 
-The API uses a **JWT + Refresh Token** strategy:
+#### `GET /shipments/{shipment_id}/similar` — Response
 
-1. **Register** a user under a tenant via `POST /auth/register` with the `X-Tenant-Slug` header.
-2. **Login** via `POST /auth/login` to receive an `access_token` and `refresh_token`.
-3. **Access protected endpoints** by passing the access token in the `Authorization: Bearer <token>` header.
-4. **Refresh** expired access tokens via `POST /auth/refresh` using the refresh token.
+Returns a list of `SimilarShipmentResponse` objects, each containing the matching shipment and its computed similarity score:
 
-### Token Details
+```json
+[
+  {
+    "shipment": {
+      "id": "...",
+      "tracking_number": "TRK-ABCD1234",
+      "status": "IN_TRANSIT",
+      "origin": "Karachi",
+      "destination": "Lahore",
+      "category": "electronics",
+      "confidence": 0.94,
+      ...
+    },
+    "similarity": 0.9312
+  }
+]
+```
 
-| Token | Lifetime | Storage |
-|---|---|---|
-| Access Token | 60 minutes | Client-side (memory / httpOnly cookie) |
-| Refresh Token | 7 days | Hashed (SHA-256) in `refresh_tokens` table |
+> **Note:** The endpoint only returns results for shipments that have had AI processing completed (i.e. their `embedding` is populated). If the source shipment has no embedding, an empty list is returned.
 
-### User Roles
+## Example Payloads
 
-| Role | Description |
+### Create Shipment
+
+The `expected_delivery_date` is **automatically calculated** by the server based on weight, distance (derived from origin/destination), and skipping weekends — you do not need to provide it.
+
+**Request body:**
+
+```json
+{
+  "origin": "Karachi",
+  "destination": "Lahore",
+  "recipient_name": "Ali Khan",
+  "recipient_phone": "03001234567",
+  "weight": 12.5,
+  "delivery_address": "Street 10, Lahore",
+  "pickup_date": "2026-04-08T09:00:00Z",
+  "description": "Two sealed boxes containing office electronics"
+}
+```
+
+**Response includes the calculated `expected_delivery_date`:**
+
+```json
+{
+  "id": "...",
+  "tracking_number": "TRK-ABCD1234",
+  "status": "CREATED",
+  "origin": "Karachi",
+  "destination": "Lahore",
+  "recipient_name": "Ali Khan",
+  "recipient_phone": "03001234567",
+  "weight": 12.5,
+  "delivery_address": "Street 10, Lahore",
+  "pickup_date": "2026-04-08T09:00:00Z",
+  "expected_delivery_date": "2026-04-10T09:00:00Z",
+  "description": "Two sealed boxes containing office electronics",
+  "category": "other",
+  "confidence": 0.0
+}
+```
+
+**Delivery date calculation logic:**
+
+| Factor | Rule |
 |---|---|
-| `ADMIN` | Full system access |
-| `OPERATOR` | Operational access (shipments, tracking) |
-| `VIEWER` | Read-only access |
+| Distance | Estimated from origin + destination string lengths (15 km/char), 1 day per 100 km |
+| Weight | +1 day per every 50 kg |
+| Weekends | Saturdays and Sundays are skipped automatically |
 
----
+**Validation rules:**
+
+- `weight`: must be positive and ≤ 10,000
+- `recipient_phone`: digits only, length between 8 and 20
+- `description`: minimum 10 characters after trimming whitespace
+
+### Update Shipment Status
+
+```json
+{ "status": "PICKED_UP" }
+```
+
+## Running Tests
+
+Run all tests:
+
+```bash
+pytest -v
+```
+
+Run specific test suites:
+
+```bash
+# Unit tests inside the test/ package
+pytest test/ -v
+
+# Schema validation tests
+pytest test_shipment_schema.py -v
+
+# Service-layer unit tests
+pytest test_shipment_service.py -v
+
+# Advanced edge-case and AI integration tests
+pytest test_shipment_advanced.py -v
+```
+
+Run everything at once:
+
+```bash
+pytest test/ test_shipment_schema.py test_shipment_service.py test_shipment_advanced.py -v
+```
+
+## Notes
+
+- Shipment tracking masks the recipient phone number and returns the full status history.
+- Tracking numbers are generated in the format `TRK-XXXXXXXX`.
+- Shipment creation automatically writes an initial `CREATED` status log entry.
+- `expected_delivery_date` is **auto-calculated** on the server at creation time — clients do not provide it.
+- The delivery date calculation skips weekends and factors in shipment weight and estimated distance.
+- The `Shipment_Status_Log` table records every status transition with a timestamp, location, and the ID of the user who made the update.
+- The `embedding` column is `nullable` — shipments without AI processing simply won't appear as candidates in similarity search results.
+- Embeddings are generated using OpenAI's `text-embedding-ada-002` (1536 dimensions) and stored via `pgvector`.
 
 ## License
 
-This project is for educational and portfolio purposes. Feel free to fork and adapt it to your needs.
-
----
-
-<p align="center">
-  Built with ❤️ using <strong>FastAPI</strong> &amp; <strong>PostgreSQL</strong>
-</p>
+This project is intended for educational and portfolio use.

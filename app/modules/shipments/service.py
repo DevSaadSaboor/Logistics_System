@@ -2,6 +2,7 @@ from .repository import ShipmentRespository, StatusLogRepostiry
 from app.modules.AI.categorizer import ShipmentCategorizer
 from fastapi import HTTPException
 from .enum import ShipmentStatus
+from datetime import timedelta,datetime,timezone
 import uuid
 
 class ShipmentsService():
@@ -42,22 +43,41 @@ class ShipmentsService():
         await self.db.commit()
         return shipment
 
-
-
     
-    async def create_shipment(self,tenant_id,origin,destination,weight,recipient_name,recipient_phone,delivery_address,pickup_date,delivery_date,description,assign_driver_id= None, user_id=None):
+    def calculate_expected_delivery_date(self, pickup_date: datetime, weight: float, origin: str, destination: str) -> datetime:
+        # Mock distance based on origin and destination string length (e.g. 15 km per char)
+        distance_km = (len(origin) + len(destination)) * 15
+        
+        # Base days: 1 day per 100 km
+        days = max(1, int(distance_km / 100))
+        
+        # Add 1 extra day for every 50 weight units
+        days += int(weight / 50)
+        
+        expected_delivery_date = pickup_date
+        added_days = 0
+        while added_days < days:
+            expected_delivery_date += timedelta(days=1)
+            # Skip weekends (5 is Saturday, 6 is Sunday)
+            if expected_delivery_date.weekday() < 5:
+                added_days += 1
+                
+        return expected_delivery_date
+
+    async def create_shipment(self,tenant_id,origin,destination,weight,recipient_name,recipient_phone,delivery_address,pickup_date,description,assign_driver_id= None, user_id=None):
+        expected_delivery_date = self.calculate_expected_delivery_date(pickup_date, weight, origin, destination)
         category = "other"
         confidence = 0.0
         tracking_number = f"TRK-{uuid.uuid4().hex[:8].upper()}"
         status =  ShipmentStatus.CREATED
-        shipment = await self.repo.create_shipment(tenant_id,tracking_number,status,origin,destination,weight,recipient_name,recipient_phone,delivery_address,pickup_date,delivery_date,description,category,confidence,assign_driver_id)
+        shipment = await self.repo.create_shipment(tenant_id,tracking_number,status,origin,destination,weight,recipient_name,recipient_phone,delivery_address,pickup_date,expected_delivery_date,description,category,confidence,assign_driver_id)
         await self.db.flush()
         status_log = await self.status_log.create_status_log(shipment.id,status,origin,user_id)
         await self.db.commit()
         await self.db.refresh(shipment)
         return shipment
 
-    async def run_ai_categorization(self , shipment_id:int , description:str):
+    async def run_ai_categorization(self, shipment_id: int, tenant_id, description: str):
         categorizer = ShipmentCategorizer()
         try:
             result = categorizer.categorize(description)
@@ -82,6 +102,16 @@ class ShipmentsService():
         await self.db.commit()
         await self.db.refresh(shipment)
         return shipment
+    
+    async def get_similar_shipment(self,shipment_id,tenant_id,min_similarity = 0.7,limit = 5,offset = 0):
+        result =  await self.repo.get_similar_shipment(shipment_id,tenant_id,min_similarity,limit,offset)
+        return [
+            {
+                "shipment": row[0],
+                "similarity":round(1-float(row[1]),4)
+            }
+            for row in result   
+        ]
     
     async def assing_driver(self,shipment_id, status,driver_id , user_id):
         shipment = await self.repo.get_by_id(shipment_id)

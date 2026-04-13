@@ -4,6 +4,7 @@ from app.core.database import Base
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import String, Enum, DateTime, func, ForeignKey, Float, Boolean, Index
 from datetime import datetime
+from pgvector.sqlalchemy import Vector
 from .enum import ShipmentStatus
 
 
@@ -71,7 +72,7 @@ class Shipments(Base):
         DateTime(timezone=True),
         nullable=False
     )
-    delivery_date : Mapped[datetime] = mapped_column(
+    expected_delivery_date : Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False
     )
@@ -110,6 +111,12 @@ class Shipments(Base):
         ForeignKey("users.id"),
         nullable=True
     )
+    embedding: Mapped[list[float]] = mapped_column(
+    Vector(1536),
+    nullable=True
+)
+
+
 
 class Shipment_Staus_log(Base):
     __tablename__ = "shipments_status_log"
