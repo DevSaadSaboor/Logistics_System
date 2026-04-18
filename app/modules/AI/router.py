@@ -9,10 +9,11 @@ class QuestionRequest(BaseModel):
 
 class AnswerResponse(BaseModel):
     answer:str
+    sources:list[str]
 
 
 @router.post("/ask",response_model=AnswerResponse)
 
 async def ask_question(payload:QuestionRequest):
-    answer = get_rag_answer(payload.question)
-    return{"answer":answer}
+    result = get_rag_answer(payload.question)
+    return result

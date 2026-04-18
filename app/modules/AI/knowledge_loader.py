@@ -1,9 +1,15 @@
 # Load raw company knowledge from source files.
+from pathlib import Path
+
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+
+DOCS_FILE = Path(__file__).resolve().parents[3] / "data" / "logistics_docs.txt"
+
+
 def load_documents():
-    loader = TextLoader("data/logistics_docs.txt")
+    loader = TextLoader(str(DOCS_FILE))
     docs = loader.load()
     splitter = RecursiveCharacterTextSplitter(
     chunk_size = 500,
