@@ -2,6 +2,8 @@ from .repository import ShipmentRespository, StatusLogRepostiry
 from app.modules.AI.categorizer import ShipmentCategorizer
 from fastapi import HTTPException
 from .enum import ShipmentStatus
+from geopy.geocoders import Nominatim
+from geopy.distance import great_circle
 from datetime import timedelta,datetime,timezone
 import uuid
 
@@ -45,11 +47,21 @@ class ShipmentsService():
 
     
     def calculate_expected_delivery_date(self, pickup_date: datetime, weight: float, origin: str, destination: str) -> datetime:
-        # Mock distance based on origin and destination string length (e.g. 15 km per char)
-        distance_km = (len(origin) + len(destination)) * 15
-        
+        distance_km = 100.0  # Default fallback distance
+        try:
+            geolocator = Nominatim(user_agent="logistics_backend")
+            loc_origin = geolocator.geocode(origin, timeout=3)
+            loc_dest = geolocator.geocode(destination, timeout=3)
+            if loc_origin and loc_dest:
+                coords_1 = (loc_origin.latitude, loc_origin.longitude)
+                coords_2 = (loc_dest.latitude, loc_dest.longitude)
+                # great_circle is Geopy's implementation of the Haversine formula
+                distance_km = great_circle(coords_1, coords_2).kilometers
+        except Exception:
+            pass
+            
         # Base days: 1 day per 100 km
-        days = max(1, int(distance_km / 100))
+        days = max(1, int(distance_km / 400))
         
         # Add 1 extra day for every 50 weight units
         days += int(weight / 50)

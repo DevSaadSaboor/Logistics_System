@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.modules.shipments.ai_service import ShipmentAiService
+from pydantic import BaseModel
+from app.modules.AI.rag_service import get_rag_answer
 from app.core.dependencies import get_current_tenant, get_current_user
 from .repository import ShipmentRespository
 from uuid import UUID
@@ -24,7 +26,7 @@ async def update_shipment(
     shipment = await service.update_status(
         shipment_id=shipment_id,
         tenant_id=tenant.id,
-        new_status= payload.new_status,
+        new_status=payload.status,
         user_id=user.id
     )
     return shipment
@@ -59,6 +61,7 @@ async def create_shipment(
         payload.description
     )
     return shipment
+
 
 @router.post("/{shipment_id}/categorize")
 async def categorize_shipment(

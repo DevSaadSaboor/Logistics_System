@@ -36,6 +36,8 @@ The API is built with asynchronous SQLAlchemy sessions and PostgreSQL, and uses 
 
 ```text
 logistics_backend/
+├── .env             # (Create this file for local secrets)
+├── .env.example     # Environment variable template
 ├── alembic.ini
 ├── docker-compose.yml
 ├── requirements.txt
@@ -107,7 +109,17 @@ pip install -r requirements.txt
 
 ### 3. Configure environment variables
 
-Create a `.env` file in the project root:
+Copy the provided template to create your `.env` file in the project root:
+
+```bash
+# Windows
+copy .env.example .env
+
+# macOS / Linux
+cp .env.example .env
+```
+
+Ensure your `.env` file contains your real credentials:
 
 ```env
 DATABASE_URL=postgresql+asyncpg://postgres:yourpassword@localhost:5432/logistics
