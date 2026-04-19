@@ -1,6 +1,6 @@
 # Logistics Backend
 
-FastAPI backend for a multi-tenant logistics system with tenant management, JWT authentication, shipment tracking, AI-based shipment categorization, and vector-similarity search.
+FastAPI backend for a multi-tenant logistics system with tenant management, JWT authentication, shipment tracking, AI-based shipment categorization, vector-similarity search, and a RAG-powered Q&A assistant.
 
 ## Overview
 
@@ -12,6 +12,7 @@ This project provides a REST API for:
 - updating shipment status through a defined lifecycle
 - categorizing shipments with OpenAI when an API key is configured
 - finding similar shipments using pgvector cosine-distance search
+- answering company policy and logistics questions via a RAG (Retrieval-Augmented Generation) assistant
 
 The API is built with asynchronous SQLAlchemy sessions and PostgreSQL, and uses Alembic for schema migrations.
 
@@ -27,7 +28,11 @@ The API is built with asynchronous SQLAlchemy sessions and PostgreSQL, and uses 
 | Migrations | Alembic |
 | Validation | Pydantic v2 |
 | Auth | `python-jose` + `passlib[bcrypt]` |
-| AI | OpenAI SDK (embeddings + categorization) |
+| AI (Categorization) | OpenAI SDK — `gpt-4o-mini` |
+| AI (Embeddings) | OpenAI SDK — `text-embedding-3-small` |
+| Geocoding / Distance | `geopy` (Nominatim + great-circle / Haversine) |
+| RAG | LangChain + `langchain-community` + `langchain-openai` |
+| RAG Vector Store | PGVector via `psycopg2-binary` |
 | Retry logic | `tenacity` |
 | Testing | `pytest` + `pytest-asyncio` |
 | Logging | `python-json-logger` |
@@ -36,11 +41,13 @@ The API is built with asynchronous SQLAlchemy sessions and PostgreSQL, and uses 
 
 ```text
 logistics_backend/
-├── .env             # (Create this file for local secrets)
-├── .env.example     # Environment variable template
+├── .env                    # (Create this file for local secrets)
+├── env.example             # Environment variable template
 ├── alembic.ini
 ├── docker-compose.yml
 ├── requirements.txt
+├── data/
+│   └── logistics_docs.txt  # Company knowledge base for the RAG assistant
 ├── app/
 │   ├── main.py
 │   ├── core/
@@ -52,7 +59,11 @@ logistics_backend/
 │   │   └── utility.py
 │   └── modules/
 │       ├── AI/
-│       │   └── categorizer.py
+│       │   ├── categorizer.py       # OpenAI shipment categorizer
+│       │   ├── knowledge_loader.py  # Loads and chunks logistics_docs.txt
+│       │   ├── rag_service.py       # RAG pipeline (retrieve → generate)
+│       │   ├── router.py            # POST /ai/ask endpoint
+│       │   └── vector_store.py      # PGVector store setup and ingestion
 │       ├── auth/
 │       │   ├── dependencies.py
 │       │   ├── models.py
@@ -61,7 +72,7 @@ logistics_backend/
 │       │   ├── schema.py
 │       │   └── service.py
 │       ├── shipments/
-│       │   ├── ai_service.py
+│       │   ├── ai_service.py        # Async categorization + embedding generation
 │       │   ├── enum.py
 │       │   ├── models.py
 │       │   ├── repository.py
@@ -69,18 +80,24 @@ logistics_backend/
 │       │   ├── schema.py
 │       │   └── service.py
 │       ├── tenants/
+│       │   ├── dependencies.py
 │       │   ├── models.py
 │       │   ├── repository.py
 │       │   ├── router.py
 │       │   ├── schema.py
 │       │   └── service.py
 │       └── users/
+│           ├── dependencies.py
+│           ├── models.py
+│           ├── respository.py
+│           ├── router.py
+│           ├── schema.py
+│           └── service.py
 ├── migrations/
-├── test/
-│   └── test_shipmentservice.py
-├── test_shipment_schema.py
-├── test_shipment_service.py
-└── test_shipment_advanced.py
+└── test/
+    ├── test_shipment_advanced.py
+    ├── test_shipment_schema.py
+    └── test_shipment_service.py
 ```
 
 ## Setup
@@ -113,10 +130,10 @@ Copy the provided template to create your `.env` file in the project root:
 
 ```bash
 # Windows
-copy .env.example .env
+copy env.example .env
 
 # macOS / Linux
-cp .env.example .env
+cp env.example .env
 ```
 
 Ensure your `.env` file contains your real credentials:
@@ -131,11 +148,11 @@ OPENAI_API_KEY=sk-...
 |---|---|---|
 | `DATABASE_URL` | ✅ | Async PostgreSQL connection string |
 | `SECRET_KEY` | ✅ | Used for JWT signing |
-| `OPENAI_API_KEY` | ❌ | Enables AI categorization and embedding generation |
+| `OPENAI_API_KEY` | ❌ | Enables AI categorization, embedding generation, and the RAG assistant |
 
 ### 4. Enable pgvector
 
-The `embedding` column uses the `pgvector` PostgreSQL extension. Enable it once in your database:
+The `embedding` column and the RAG vector store both use the `pgvector` PostgreSQL extension. Enable it once in your database:
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -147,7 +164,17 @@ CREATE EXTENSION IF NOT EXISTS vector;
 alembic upgrade head
 ```
 
-### 6. Start the API
+### 6. Ingest company knowledge (RAG assistant)
+
+Before the `/ai/ask` endpoint can answer questions, the contents of `data/logistics_docs.txt` must be split and stored in the PGVector collection. Run the ingestion script once:
+
+```bash
+python -c "from app.modules.AI.vector_store import create_vector_store; create_vector_store()"
+```
+
+This only needs to be run once (or whenever `logistics_docs.txt` is updated).
+
+### 7. Start the API
 
 ```bash
 uvicorn app.main:app --reload
@@ -203,6 +230,8 @@ To advance a shipment's status, send a `PATCH` request with the `status` field:
 
 When a shipment is created, the API schedules background categorization using the shipment's description. You can also trigger it manually.
 
+**Model used:** `gpt-4o-mini`
+
 **Supported categories:**
 
 | Category | Description |
@@ -215,11 +244,11 @@ When a shipment is created, the API schedules background categorization using th
 | `clothing` | Garments and textiles |
 | `other` | Default fallback category |
 
-If `OPENAI_API_KEY` is missing or categorization fails, the shipment defaults to `category = "other"` and `confidence = 0.0`. The `ai_processed` flag tracks whether categorization has completed.
+If `OPENAI_API_KEY` is missing or categorization fails, the shipment defaults to `category = "other"` and `confidence = 0.0`. The `ai_processed` flag tracks whether categorization has completed. Failed calls are retried up to 3 times with exponential back-off via `tenacity`.
 
 ## Vector Similarity Search
 
-After a shipment is categorized, the AI service also generates a 1536-dimension OpenAI embedding from the shipment's description and stores it in the `embedding` column (pgvector `vector(1536)` type).
+After a shipment is categorized, the AI service also generates a 1536-dimension OpenAI embedding from the shipment's description using `text-embedding-3-small` and stores it in the `embedding` column (pgvector `vector(1536)` type).
 
 The `/similar` endpoint uses cosine distance (`<=>`) on these embeddings to return the most semantically similar shipments within the same tenant.
 
@@ -230,6 +259,19 @@ similarity = 1 - cosine_distance(query_embedding, candidate_embedding)
 ```
 
 A value of `1.0` means identical, `0.0` means completely unrelated. By default only results with `similarity >= 0.7` are returned.
+
+## RAG Q&A Assistant
+
+The `/ai/ask` endpoint lets clients ask natural-language questions about company policies and logistics procedures. Answers are grounded exclusively in the content of `data/logistics_docs.txt` — the model will not hallucinate outside that context.
+
+**How it works:**
+
+1. The question is embedded with `text-embedding-3-small`.
+2. The top-3 most relevant document chunks are retrieved from the PGVector store (`logistics_docs` collection).
+3. The chunks are passed as context to `gpt-4o-mini`, which generates a grounded answer.
+4. The response includes the answer and the source section headings used.
+
+If the answer is not covered by the knowledge base, the model replies: *"I don't know based on company policy."*
 
 ## API Endpoints
 
@@ -299,11 +341,32 @@ Returns a list of `SimilarShipmentResponse` objects, each containing the matchin
 
 > **Note:** The endpoint only returns results for shipments that have had AI processing completed (i.e. their `embedding` is populated). If the source shipment has no embedding, an empty list is returned.
 
+### AI Assistant
+
+| Method | Path | Description | Auth required |
+|---|---|---|---|
+| `POST` | `/ai/ask` | Ask a question about company policy or logistics | — |
+
+#### `POST /ai/ask` — Request
+
+```json
+{ "question": "What is the standard delivery SLA?" }
+```
+
+#### `POST /ai/ask` — Response
+
+```json
+{
+  "answer": "Standard delivery takes 3–5 business days depending on distance and weight.",
+  "sources": ["Delivery SLA Policy"]
+}
+```
+
 ## Example Payloads
 
 ### Create Shipment
 
-The `expected_delivery_date` is **automatically calculated** by the server based on weight, distance (derived from origin/destination), and skipping weekends — you do not need to provide it.
+The `expected_delivery_date` is **automatically calculated** by the server — you do not need to provide it.
 
 **Request body:**
 
@@ -345,8 +408,9 @@ The `expected_delivery_date` is **automatically calculated** by the server based
 
 | Factor | Rule |
 |---|---|
-| Distance | Estimated from origin + destination string lengths (15 km/char), 1 day per 100 km |
-| Weight | +1 day per every 50 kg |
+| Distance | Real coordinates fetched via Geopy (Nominatim); great-circle distance calculated using the Haversine formula. Falls back to 100 km if geocoding fails. |
+| Base transit days | 1 day per 400 km (minimum 1 day) |
+| Weight surcharge | +1 day per every 50 kg |
 | Weekends | Saturdays and Sundays are skipped automatically |
 
 **Validation rules:**
@@ -363,32 +427,16 @@ The `expected_delivery_date` is **automatically calculated** by the server based
 
 ## Running Tests
 
-Run all tests:
+All tests live inside the `test/` directory.
 
 ```bash
-pytest -v
-```
-
-Run specific test suites:
-
-```bash
-# Unit tests inside the test/ package
+# Run all tests
 pytest test/ -v
 
-# Schema validation tests
-pytest test_shipment_schema.py -v
-
-# Service-layer unit tests
-pytest test_shipment_service.py -v
-
-# Advanced edge-case and AI integration tests
-pytest test_shipment_advanced.py -v
-```
-
-Run everything at once:
-
-```bash
-pytest test/ test_shipment_schema.py test_shipment_service.py test_shipment_advanced.py -v
+# Run a specific suite
+pytest test/test_shipment_schema.py -v
+pytest test/test_shipment_service.py -v
+pytest test/test_shipment_advanced.py -v
 ```
 
 ## Notes
@@ -397,10 +445,11 @@ pytest test/ test_shipment_schema.py test_shipment_service.py test_shipment_adva
 - Tracking numbers are generated in the format `TRK-XXXXXXXX`.
 - Shipment creation automatically writes an initial `CREATED` status log entry.
 - `expected_delivery_date` is **auto-calculated** on the server at creation time — clients do not provide it.
-- The delivery date calculation skips weekends and factors in shipment weight and estimated distance.
+- The delivery date calculation uses real geocoding (Geopy + Nominatim) and the Haversine formula, skips weekends, and factors in shipment weight.
 - The `Shipment_Status_Log` table records every status transition with a timestamp, location, and the ID of the user who made the update.
 - The `embedding` column is `nullable` — shipments without AI processing simply won't appear as candidates in similarity search results.
-- Embeddings are generated using OpenAI's `text-embedding-ada-002` (1536 dimensions) and stored via `pgvector`.
+- Embeddings are generated using OpenAI's `text-embedding-3-small` (1536 dimensions) and stored via `pgvector`.
+- The RAG assistant uses a separate PGVector collection (`logistics_docs`) populated from `data/logistics_docs.txt`. Re-run the ingestion script whenever that file is updated.
 
 ## License
 

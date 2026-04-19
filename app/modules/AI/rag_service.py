@@ -1,12 +1,13 @@
 # It handles:question -> retrieve docs -> send context to LLM  ->return answer
+import os
 from dotenv import load_dotenv
 from langchain_community.vectorstores import PGVector
 from langchain_openai import OpenAIEmbeddings,ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
-from app.modules.AI.vector_store import COLLECTION_NAME
+from app.modules.AI.vector_store import COLLECTION_NAME,create_vector_store
 load_dotenv()
 
-CONNECTION_STRING = "postgresql+psycopg2://postgres:1234@localhost:5432/logistics"
+CONNECTION_STRING = os.getenv("SYNC_DATABASE_URL")
 
 def get_rag_answer(question:str):
     embedding = OpenAIEmbeddings(model = "text-embedding-3-small")
@@ -56,6 +57,27 @@ def get_rag_answer(question:str):
         "answer": response.content,
         "sources": list(set(sources))
     }
+def semantic_search(query: str):
+
+    vector_store = create_vector_store()
+
+    retriever = vector_store.as_retriever(
+        search_kwargs={"k": 3}
+    )
+
+    docs = retriever.invoke(query)
+
+    results = []
+
+    for doc in docs:
+        source = doc.page_content.split("\n")[0].replace("###", "").strip()
+
+        results.append({
+            "source": source,
+            "content": doc.page_content
+        })
+
+    return results
 
 # if __name__ == "__main__":
 #     print(get_rag_answer("What is delivery SLA?"))

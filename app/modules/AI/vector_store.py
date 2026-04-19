@@ -1,4 +1,5 @@
 # Connect docs to the vector database.
+import os
 from langchain_community.vectorstores import PGVector
 from langchain_openai import OpenAIEmbeddings
 from app.modules.AI.knowledge_loader import load_documents
@@ -6,24 +7,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-CONNECTION_STRING = "postgresql+psycopg2://postgres:1234@localhost:5432/logistics"
+CONNECTION_STRING = os.getenv("SYNC_DATABASE_URL")
 COLLECTION_NAME = "logistics_docs"
 
 def create_vector_store():
-    embedding  = OpenAIEmbeddings(
+   embedding = OpenAIEmbeddings(
         model="text-embedding-3-small",
+        api_key=os.getenv("OPENAI_API_KEY")
     )
-    documents = load_documents()
 
-    vector_store = PGVector(
+   return PGVector(
     connection_string=CONNECTION_STRING,
     embedding_function=embedding,
     collection_name=COLLECTION_NAME,
     use_jsonb=True
     )
 
-    vector_store.add_documents(documents)
-    print(f"Vector store created successfully with {len(documents)} chunks.")
+    # vector_store.add_documents(documents)
+    # print(f"Vector store created successfully with {len(documents)} chunks.")
 
 
 def ensure_vector_store_initialized():
