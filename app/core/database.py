@@ -14,23 +14,28 @@ class Base(DeclarativeBase):
     pass
 
 
-# Create async engine
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=True,  # shows SQL queries in terminal (good for learning)
-)
+# Create async engine/session only when DATABASE_URL exists.
+# This avoids import-time crashes in test environments that don't provide DB env vars.
+engine = None
+AsyncSessionLocal = None
 
+if settings.DATABASE_URL:
+    engine = create_async_engine(
+        settings.DATABASE_URL,
+        echo=True,  # shows SQL queries in terminal (good for learning)
+    )
 
-# Create session factory
-AsyncSessionLocal = sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
+    AsyncSessionLocal = sessionmaker(
+        bind=engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
 
 
 # Dependency for FastAPI
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    if AsyncSessionLocal is None:
+        raise RuntimeError("DATABASE_URL is not configured.")
     async with AsyncSessionLocal() as session:
         yield session
 
