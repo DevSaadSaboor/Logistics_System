@@ -11,7 +11,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.get("/me")
 async def get_me(current_user = Depends(get_current_user), db:AsyncSession = Depends(get_db)):
-    service = UserService(db)
+    UserService(db)
     return {
         "id": current_user.id,
         "email" : current_user.email,

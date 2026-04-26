@@ -1,7 +1,7 @@
 from .models import RefreshToken
 from sqlalchemy import select,update
 from datetime import timezone,datetime
-from sqlalchemy.ext.asyncio import AsyncSession
+# from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class RefreshTokenRespsitory:

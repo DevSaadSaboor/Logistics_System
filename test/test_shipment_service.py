@@ -1,9 +1,6 @@
 import unittest
-from unittest.mock import AsyncMock, patch, MagicMock
-from datetime import datetime, timedelta
-
-# We need to import the service and related models.
-# To avoid actual DB queries, we will mock the dependencies.
+from unittest.mock import AsyncMock,MagicMock
+from datetime import datetime
 from app.modules.shipments.service import ShipmentsService
 from app.modules.shipments.enum import ShipmentStatus
 from fastapi import HTTPException
@@ -37,7 +34,7 @@ class TestShipmentsService(unittest.IsolatedAsyncioTestCase):
         recipient_phone = "1234567890"
         delivery_address = "123 Street"
         pickup_date = datetime(2025, 1, 1)
-        delivery_date = datetime(2025, 1, 5)
+        # delivery_date = datetime(2025, 1, 5)
         description = "Test Package"
         
         # Execution

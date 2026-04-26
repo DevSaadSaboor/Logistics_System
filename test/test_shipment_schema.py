@@ -1,6 +1,6 @@
 import pytest
 from pydantic import ValidationError
-from datetime import datetime, timedelta
+from datetime import datetime
 from app.modules.shipments.schema import ShipmentCreate
 
 def test_valid_shipment_create():

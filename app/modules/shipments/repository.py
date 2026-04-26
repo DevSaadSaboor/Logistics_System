@@ -1,6 +1,5 @@
 from .models import Shipments,Shipment_Staus_log
 from sqlalchemy.ext.asyncio import AsyncSession
-from .enum import ShipmentStatus
 from sqlalchemy import select,update,text
 from sqlalchemy.sql import func
 
@@ -88,7 +87,7 @@ class ShipmentRespository:
             .where(
                 Shipments.tenant_id == tenant_id,
                 Shipments.id != shipment_id,
-                Shipments.embedding != None,
+                Shipments.embedding.is_not(None),
                 text(f"embedding <=> {vector_literal} < {distance_threshold}")
             )
             .order_by(text("distance"))

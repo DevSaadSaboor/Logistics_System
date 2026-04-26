@@ -1,7 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 # from app.core.utility import generate_slug
 from app.modules.tenants.repository import TenantRepository
-from app.modules.tenants.models import Tenant
 from datetime import datetime,timezone
 
 

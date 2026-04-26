@@ -1,6 +1,4 @@
-from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime,timezone,timedelta
-from app.modules.tenants.models import Tenant
 from app.modules.tenants.repository import TenantRepository
 from app.modules.auth.repository import RefreshTokenRespsitory
 from .respository import UserRepository

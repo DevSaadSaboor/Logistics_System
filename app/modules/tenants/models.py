@@ -2,7 +2,6 @@ import uuid
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import String, UniqueConstraint
 from app.core.database import Base
 from app.core.base import TimeStampMixIn    
 from sqlalchemy import Index

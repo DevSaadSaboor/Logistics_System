@@ -3,7 +3,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import String,Enum,DateTime,func,ForeignKey
-from app.modules.tenants.models import Tenant
 from datetime import datetime   
 from sqlalchemy import Index
 from sqlalchemy.sql import expression

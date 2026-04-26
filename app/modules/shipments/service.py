@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from .enum import ShipmentStatus
 from geopy.geocoders import Nominatim
 from geopy.distance import great_circle
-from datetime import timedelta,datetime,timezone
+from datetime import timedelta,datetime
 import uuid
 
 class ShipmentsService():
@@ -25,8 +25,9 @@ class ShipmentsService():
         if not shipment:
             raise HTTPException(status_code= 404, detail="shipment not found")
         current_status = shipment.status
-        current_status_value = current_status.value
-        new_status_value = new_status.value if hasattr(new_status,"value") else new_status
+        # current_status_value = current_status.value
+        # print(current_status_value)
+        new_status.value if hasattr(new_status,"value") else new_status
 
         if current_status == new_status:
             raise HTTPException(status_code=400 , detail="status already set")
@@ -84,7 +85,7 @@ class ShipmentsService():
         status =  ShipmentStatus.CREATED
         shipment = await self.repo.create_shipment(tenant_id,tracking_number,status,origin,destination,weight,recipient_name,recipient_phone,delivery_address,pickup_date,expected_delivery_date,description,category,confidence,assign_driver_id)
         await self.db.flush()
-        status_log = await self.status_log.create_status_log(shipment.id,status,origin,user_id)
+        await self.status_log.create_status_log(shipment.id,status,origin,user_id)
         await self.db.commit()
         await self.db.refresh(shipment)
         return shipment
@@ -109,7 +110,7 @@ class ShipmentsService():
     async def update_shipment(self,shipment_id, status):
         shipment = await self.repo.get_by_id(shipment_id)
         await self.repo.update_status(shipment.id, status)
-        status_log = await self.status_log.create_status_log(shipment.id, status, shipment.origin, shipment.assign_driver_id)
+        await self.status_log.create_status_log(shipment.id, status, shipment.origin, shipment.assign_driver_id)
 
         await self.db.commit()
         await self.db.refresh(shipment)

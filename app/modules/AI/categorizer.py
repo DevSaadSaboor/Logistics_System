@@ -1,11 +1,12 @@
 from dotenv import load_dotenv
-load_dotenv()
 import os 
+import logging
+from tenacity import retry ,stop_after_attempt , wait_exponential
+from pydantic import BaseModel, field_validator,Field
 from openai import OpenAI
 import json
-from pydantic import BaseModel, field_validator,Field
-from tenacity import retry ,stop_after_attempt , wait_exponential
-import logging
+load_dotenv()
+
 logging.getLogger("httpx").setLevel(logging.WARNING)
 CATEGORIES = [
     "electronics",
