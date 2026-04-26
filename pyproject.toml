@@ -1,3 +1,6 @@
 [tool.ruff]
 exclude = ["migrations"]
 line-length = 88
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
