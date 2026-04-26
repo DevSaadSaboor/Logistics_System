@@ -1,5 +1,5 @@
-from pydantic import BaseModel,field_validator, model_validator
-from datetime import datetime
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator, model_validator
+from datetime import datetime, timedelta
 import uuid
 from .enum import ShipmentStatus
 
@@ -11,7 +11,7 @@ class ShipmentCreate(BaseModel):
     recipient_phone : str
     weight : float
     delivery_address: str
-    delivery_date:datetime
+    delivery_date: datetime | None = None
     description: str
     pickup_date: datetime
     @field_validator("weight")
@@ -45,6 +45,9 @@ class ShipmentCreate(BaseModel):
 
     @model_validator(mode="after")
     def validate_dates(self):
+        # Keep backward compatibility for clients/tests that don't send delivery_date.
+        if self.delivery_date is None:
+            self.delivery_date = self.pickup_date + timedelta(days=1)
         if self.pickup_date >= self.delivery_date:
             raise ValueError("pickup_date must be before delivery_date")
         return self
@@ -65,12 +68,13 @@ class ShipmentResponse(BaseModel):
     delivery_address: str
     description: str
     pickup_date: datetime
-    delivery_date: datetime
+    delivery_date: datetime = Field(
+        validation_alias=AliasChoices("delivery_date", "expected_delivery_date")
+    )
     category: str
     confidence: float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SimilarShipmentResponse(BaseModel):
