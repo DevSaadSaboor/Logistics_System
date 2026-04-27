@@ -24,18 +24,17 @@ The API is built with asynchronous SQLAlchemy sessions and PostgreSQL, and uses 
 | Framework | FastAPI |
 | ORM | SQLAlchemy 2.x async |
 | Database | PostgreSQL with `asyncpg` |
-| Vector Search | `pgvector` + `pgvector[sqlalchemy]` |
+| Vector Search | `pgvector` (SQLAlchemy integration included) |
 | Migrations | Alembic |
 | Validation | Pydantic v2 |
 | Auth | `python-jose` + `passlib[bcrypt]` |
 | AI (Categorization) | OpenAI SDK — `gpt-4o-mini` |
 | AI (Embeddings) | OpenAI SDK — `text-embedding-3-small` |
 | Geocoding / Distance | `geopy` (Nominatim + great-circle / Haversine) |
-| RAG | LangChain + `langchain-community` + `langchain-openai` |
+| RAG | `langchain-community` + `langchain-openai` + `langchain-text-splitters` |
 | RAG Vector Store | PGVector via `psycopg2-binary` |
 | Retry logic | `tenacity` |
 | Testing | `pytest` + `pytest-asyncio` |
-| Logging | `python-json-logger` |
 
 ## Project Structure
 
@@ -95,6 +94,7 @@ logistics_backend/
 │           └── service.py
 ├── migrations/
 └── test/
+    ├── conftest.py
     ├── test_shipment_advanced.py
     ├── test_shipment_schema.py
     └── test_shipment_service.py
@@ -205,6 +205,13 @@ Protected endpoints also require a bearer token:
 Authorization: Bearer <access_token>
 ```
 
+Tenant-scoped protected endpoints also enforce:
+
+- the authenticated user belongs to the same tenant resolved from `X-Tenant-Slug`
+- role-based access control (RBAC) for allowed roles per endpoint
+
+If tenant and token user do not match, the API returns `403`.
+
 **Typical flow:**
 
 1. Create a tenant via `POST /tenants/`.
@@ -283,11 +290,11 @@ If the answer is not covered by the knowledge base, the model replies: *"I don't
 
 ### Tenants
 
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/tenants/` | Create a new tenant |
-| `GET` | `/tenants/` | List all tenants |
-| `DELETE` | `/tenants/{tenant_id}` | Soft-delete a tenant |
+| Method | Path | Description | Auth required |
+|---|---|---|---|
+| `POST` | `/tenants/` | Create a new tenant | Bearer (`admin`) |
+| `GET` | `/tenants/` | List all tenants | Bearer (`admin`) |
+| `DELETE` | `/tenants/{tenant_id}` | Soft-delete a tenant | Bearer (`admin`) |
 
 ### Auth
 
@@ -295,19 +302,19 @@ If the answer is not covered by the knowledge base, the model replies: *"I don't
 |---|---|---|---|
 | `POST` | `/auth/register` | Register a user for a tenant | `X-Tenant-Slug` |
 | `POST` | `/auth/login` | Log in and receive tokens | `X-Tenant-Slug` |
-| `GET` | `/auth/me` | Get current authenticated user | Bearer + `X-Tenant-Slug` |
-| `POST` | `/auth/refresh` | Refresh access token | Bearer |
+| `GET` | `/auth/me` | Get current authenticated user | Bearer |
+| `POST` | `/auth/refresh` | Refresh access token | `X-Tenant-Slug` |
 
 ### Shipments
 
 | Method | Path | Description | Auth required |
 |---|---|---|---|
-| `POST` | `/shipments/` | Create a shipment | Bearer + `X-Tenant-Slug` |
-| `PATCH` | `/shipments/{shipment_id}/status` | Update shipment status | Bearer + `X-Tenant-Slug` |
+| `POST` | `/shipments/` | Create a shipment | Bearer (`admin` or `operator`) + `X-Tenant-Slug` |
+| `PATCH` | `/shipments/{shipment_id}/status` | Update shipment status | Bearer (`admin` or `operator`) + `X-Tenant-Slug` |
 | `GET` | `/shipments/track/{tracking_number}` | Public tracking lookup | — |
-| `POST` | `/shipments/{shipment_id}/categorize` | Trigger AI categorization | Bearer + `X-Tenant-Slug` |
-| `GET` | `/shipments/{shipment_id}/category` | Get categorization result | Bearer + `X-Tenant-Slug` |
-| `GET` | `/shipments/{shipment_id}/similar` | Find similar shipments by embedding | Bearer + `X-Tenant-Slug` |
+| `POST` | `/shipments/{shipment_id}/categorize` | Trigger AI categorization | Bearer (`admin` or `operator`) + `X-Tenant-Slug` |
+| `GET` | `/shipments/{shipment_id}/category` | Get categorization result | Bearer (`admin`, `operator`, or `viewer`) + `X-Tenant-Slug` |
+| `GET` | `/shipments/{shipment_id}/similar` | Find similar shipments by embedding | Bearer (`admin`, `operator`, or `viewer`) + `X-Tenant-Slug` |
 
 #### `GET /shipments/{shipment_id}/similar` — Query Parameters
 
@@ -341,11 +348,30 @@ Returns a list of `SimilarShipmentResponse` objects, each containing the matchin
 
 > **Note:** The endpoint only returns results for shipments that have had AI processing completed (i.e. their `embedding` is populated). If the source shipment has no embedding, an empty list is returned.
 
+## Authorization and Error Semantics
+
+This API now enforces consistent auth/tenant/RBAC responses:
+
+- `401 Unauthorized` for invalid or missing authentication credentials (invalid JWT or login credentials)
+- `403 Forbidden` for valid users without required role permissions, or tenant mismatch between token user and `X-Tenant-Slug`
+- `404 Not Found` when requested tenant or shipment does not exist in context
+- `400 Bad Request` for validation/business-rule conflicts (e.g. duplicate tenant name, duplicate user in tenant)
+
+Common response messages include:
+
+- `Unauthorized: invalid access token`
+- `Unauthorized: invalid credentials`
+- `Forbidden: insufficient role permissions`
+- `Forbidden: user does not belong to requested tenant`
+- `Tenant not found for provided X-Tenant-Slug`
+- `Shipment not found`
+
 ### AI Assistant
 
 | Method | Path | Description | Auth required |
 |---|---|---|---|
-| `POST` | `/ai/ask` | Ask a question about company policy or logistics | — |
+| `POST` | `/ai/ask` | Ask a natural-language question about company policy or logistics | — |
+| `POST` | `/ai/search` | Semantic document search over the knowledge base | — |
 
 #### `POST /ai/ask` — Request
 
@@ -427,7 +453,13 @@ The `expected_delivery_date` is **automatically calculated** by the server — y
 
 ## Running Tests
 
-All tests live inside the `test/` directory.
+All tests live inside the `test/` directory and use `unittest` + `pytest` with `AsyncMock` for async service isolation. No real database is required.
+
+| File | What it covers |
+|---|---|
+| `test_shipment_schema.py` | Pydantic validation — valid creation, invalid weight / phone / description |
+| `test_shipment_service.py` | Service layer — create shipment, update status, assign driver, tracking lookup (found & not-found) |
+| `test_shipment_advanced.py` | Edge cases — boundary values, ORM serialization, tracking number format & uniqueness, AI categorization success & fallback, phone masking, multi-entry status history, user_id forwarding |
 
 ```bash
 # Run all tests

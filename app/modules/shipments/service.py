@@ -1,6 +1,10 @@
 from .repository import ShipmentRespository, StatusLogRepostiry
 from app.modules.AI.categorizer import ShipmentCategorizer
-from fastapi import HTTPException
+from app.core.exceptions import (
+    ShipmentNotFoundError,
+    InvalidStatusTransitionError,
+)
+from app.core.logging import logger
 from .enum import ShipmentStatus
 from geopy.geocoders import Nominatim
 from geopy.distance import great_circle
@@ -23,17 +27,26 @@ class ShipmentsService():
     async def update_status(self,shipment_id,tenant_id,new_status,user_id):
         shipment  = await self.repo.get_by_id_for_update(shipment_id,tenant_id)
         if not shipment:
-            raise HTTPException(status_code= 404, detail="shipment not found")
+            raise ShipmentNotFoundError()
         current_status = shipment.status
-        # current_status_value = current_status.value
-        # print(current_status_value)
         new_status.value if hasattr(new_status,"value") else new_status
 
         if current_status == new_status:
-            raise HTTPException(status_code=400 , detail="status already set")
+            logger.warning(
+                "shipment.update_status.invalid no_op shipment_id=%s status=%s",
+                shipment_id,
+                current_status,
+            )
+            raise InvalidStatusTransitionError("Status is already set")
         allowed = self.ALLOWED_TRANSITIONS.get(current_status.value,[])
         if new_status not in allowed:
-            raise HTTPException(status_code=400 ,detail=f"Invalid transition from {current_status} to {new_status}")
+            logger.warning(
+                "shipment.update_status.invalid_transition shipment_id=%s from=%s to=%s",
+                shipment_id,
+                current_status,
+                new_status,
+            )
+            raise InvalidStatusTransitionError(f"Invalid status transition from {current_status} to {new_status}")
         shipment.status = new_status
 
         await self.db.flush()
@@ -138,7 +151,11 @@ class ShipmentsService():
     async def get_by_tracking_number(self,tracking_number):
         shipment = await self.repo.get_by_tracking_number(tracking_number)
         if not shipment:
-            raise HTTPException(status_code= 404, detail="shipment not found")
+            logger.warning(
+                "shipment.track.not_found tracking_number=%s",
+                tracking_number,
+            )
+            raise ShipmentNotFoundError()
         
         logs = await self.status_log.get_logs_by_shipment_id(shipment.id)
 
