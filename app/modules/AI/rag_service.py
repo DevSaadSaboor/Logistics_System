@@ -5,7 +5,7 @@ from langchain_community.vectorstores import PGVector
 from langchain_openai import OpenAIEmbeddings,ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from app.modules.AI.vector_store import COLLECTION_NAME,create_vector_store
-load_dotenv()
+load_dotenv(override=True)
 
 CONNECTION_STRING = os.getenv("SYNC_DATABASE_URL")
 
@@ -62,8 +62,8 @@ def semantic_search(query: str):
     vector_store = create_vector_store()
 
     retriever = vector_store.as_retriever(
-        search_kwargs={"k": 3}
-    )
+        search_type = "mmr",
+        search_kwargs={"k": 5,"fetch_k":10})
 
     docs = retriever.invoke(query)
 

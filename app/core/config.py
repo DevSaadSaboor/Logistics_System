@@ -3,7 +3,8 @@ from dotenv import load_dotenv
 from datetime import timedelta
 
 
-load_dotenv()
+# Ensure local `.env` values override any existing OS env vars.
+load_dotenv(override=True)
 
 class Settings:
      DATABASE_URL: str = os.getenv("DATABASE_URL")

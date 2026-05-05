@@ -1,0 +1,240 @@
+{
+  "isRemote": false,
+  "systemInfo": {
+    "operatingSystem": "windows",
+    "timestamp": "2026-05-05T17:41:00.112Z",
+    "userEmail": "saadsaboor5875@gmail.com",
+    "userName": "Saad Saboor"
+  },
+  "extensionLogs": [
+    "2026-05-05 22:35:05.535 [info] I0505 22:35:05.485025 19184 server.go:1236] Starting language server process with pid 19184",
+    "2026-05-05 22:35:05.535 [info] I0505 22:35:05.486557 19184 server.go:301] Setting GOMAXPROCS to 4",
+    "2026-05-05 22:35:05.564 [info] I0505 22:35:05.537306 19184 server.go:440] Language server will attempt to listen on host 127.0.0.1",
+    "2026-05-05 22:35:05.564 [info] I0505 22:35:05.538908 19184 server.go:454] Language server listening on random port at 52669 for HTTPS (gRPC)",
+    "2026-05-05 22:35:05.564 [info] I0505 22:35:05.538908 19184 server.go:461] Language server listening on random port at 52670 for HTTP",
+    "2026-05-05 22:35:06.252 [info] I0505 22:35:06.251437 19184 server.go:433] Created extension server client at port 52667",
+    "2026-05-05 22:35:06.277 [info] I0505 22:35:06.276912 19184 googleAgent_manager.go:773] Reactive state is disabled",
+    "2026-05-05 22:35:06.298 [info] (Antigravity) 2026-05-05 22:35:06.296 [INFO]: Language server started",
+    "2026-05-05 22:35:06.340 [info] I0505 22:35:06.321269 19184 server.go:1693] initialized server successfully in 834.7128ms",
+    "2026-05-05 22:35:07.454 [info] (Antigravity) 2026-05-05 22:35:07.454 [INFO]: LS lspClient started successfully",
+    "2026-05-05 22:35:14.256 [info] I0505 22:35:09.321125 19184 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xcaa2108fb79c92dc",
+    "2026-05-05 22:35:14.256 [info] I0505 22:35:10.650081 19184 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x9274962c8a11ea2f",
+    "2026-05-05 22:40:08.541 [info] I0505 22:40:08.540381 19184 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x6497136a4d8d289b",
+    "2026-05-05 22:40:09.668 [info] I0505 22:40:09.666064 19184 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x13e45f5c67344f1"
+  ],
+  "rendererLogs": {
+    "ls-main": [
+      "2026-05-05 22:34:43.711 [info] [LS Main] Starting language server from: c:\\Users\\Saad\\AppData\\Local\\Programs\\Antigravity\\resources\\app\\extensions\\antigravity\\bin\\language_server_windows_x64.exe",
+      "2026-05-05 22:34:44.040 [info] [LS Main] Args: --csrf_token a55b482d-cd8c-4c2a-96ac-e177e942b436 --extension_server_port 54629 --extension_server_csrf_token 3cc0fd8d-6276-4ba5-9f8c-b360d492c656 --app_data_dir antigravity --cloud_code_endpoint https://cloudcode-pa.googleapis.com",
+      "2026-05-05 22:34:44.129 [info] [LS Main] Process spawned with PID: 5332",
+      "2026-05-05 22:34:44.398 [error] [LS Main stderr] I0505 22:34:44.395668  5332 server.go:1236] Starting language server process with pid 5332",
+      "I0505 22:34:44.397479  5332 server.go:301] Setting GOMAXPROCS to 4",
+      "2026-05-05 22:34:44.409 [error] [LS Main stderr] I0505 22:34:44.409536  5332 server.go:440] Language server will attempt to listen on host 127.0.0.1",
+      "2026-05-05 22:34:44.411 [error] [LS Main stderr] I0505 22:34:44.410659  5332 server.go:454] Language server listening on random port at 54631 for HTTPS (gRPC)",
+      "2026-05-05 22:34:44.411 [error] [LS Main stderr] I0505 22:34:44.411166  5332 server.go:461] Language server listening on random port at 54632 for HTTP",
+      "2026-05-05 22:34:45.015 [error] [LS Main stderr] I0505 22:34:45.014408  5332 server.go:433] Created extension server client at port 54629",
+      "2026-05-05 22:34:45.038 [error] [LS Main stderr] I0505 22:34:45.038258  5332 googleAgent_manager.go:773] Reactive state is disabled",
+      "2026-05-05 22:34:45.061 [info] [LS Main] LS started on port 54631",
+      "2026-05-05 22:34:45.075 [error] [LS Main stderr] I0505 22:34:45.074846  5332 server.go:1693] initialized server successfully in 677.3673ms",
+      "2026-05-05 22:34:48.386 [error] [LS Main stderr] I0505 22:34:48.384444  5332 http_helpers.go:151] URL: https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xd5f2261149307e9d",
+      "2026-05-05 22:34:49.405 [error] [LS Main stderr] I0505 22:34:49.397596  5332 http_helpers.go:151] URL: https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x7ed3aa06a48baa7b",
+      "2026-05-05 22:34:51.100 [error] [LS Main stderr] I0505 22:34:51.100279  5332 http_helpers.go:151] URL: https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x96fc96e04fb3e560",
+      "2026-05-05 22:34:54.553 [error] [LS Main stderr] I0505 22:34:54.552507  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x56bcbb65c78e7966",
+      "2026-05-05 22:34:56.215 [error] [LS Main stderr] I0505 22:34:56.215062  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xc2705962f26c8c00",
+      "2026-05-05 22:34:56.921 [error] [LS Main stderr] I0505 22:34:56.921256  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xd01448b53e6acd5",
+      "2026-05-05 22:35:40.215 [error] [LS Main stderr] E0505 22:35:40.214627  5332 log.go:398] failed to check terminal shell support: internal: internal error",
+      "2026-05-05 22:35:40.289 [error] [LS Main stderr] I0505 22:35:40.288961  5332 planner_generator.go:283] Requesting planner with 35 chat messages at model retry attempt 1 and API retry attempt 1",
+      "2026-05-05 22:35:44.970 [error] [LS Main stderr] I0505 22:35:44.969947  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xb34b03884e1aac17",
+      "2026-05-05 22:38:13.686 [error] [LS Main stderr] E0505 22:38:13.685736  5332 log.go:398] failed to check terminal shell support: internal: internal error",
+      "2026-05-05 22:38:13.716 [error] [LS Main stderr] I0505 22:38:13.715690  5332 planner_generator.go:283] Requesting planner with 37 chat messages at model retry attempt 1 and API retry attempt 1",
+      "2026-05-05 22:38:17.802 [error] [LS Main stderr] I0505 22:38:17.801354  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xfb910170c3316ee",
+      "2026-05-05 22:39:47.241 [error] [LS Main stderr] I0505 22:39:47.239754  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xa70c0f6dd1da6417",
+      "2026-05-05 22:39:48.368 [error] [LS Main stderr] I0505 22:39:48.366499  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x9cfb0ead02a8e8ab",
+      "2026-05-05 22:39:49.391 [error] [LS Main stderr] I0505 22:39:49.390587  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xc9ef3610a6c435d4",
+      "2026-05-05 22:40:48.276 [error] [LS Main stderr] E0505 22:40:48.276219  5332 log.go:398] failed to check terminal shell support: internal: internal error",
+      "2026-05-05 22:40:48.306 [error] [LS Main stderr] I0505 22:40:48.305096  5332 planner_generator.go:283] Requesting planner with 39 chat messages at model retry attempt 1 and API retry attempt 1",
+      "2026-05-05 22:40:51.450 [error] [LS Main stderr] I0505 22:40:51.449700  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x97f16869e439b80",
+      "2026-05-05 22:40:57.608 [error] [LS Main stderr] I0505 22:40:57.607618  5332 planner_generator.go:318] Encountered retryable api error. retrying in 5s. Error (The stream was interrupted. Please continue the task you were working on.): UNAVAILABLE (code 503): The service is currently unavailable.: UNAVAILABLE (code 503): The service is currently unavailable."
+    ],
+    "artifacts": [],
+    "antigravity-interactive-editor": [
+      "2026-05-05 22:34:52.394 [info] Initialized with 0 existing HTML files",
+      "2026-05-05 22:34:52.395 [info] Watching for HTML files in: file:///c%3A/Users/Saad/.gemini/antigravity/html_artifacts"
+    ],
+    "rendererPerf": [
+      "2026-05-05 22:34:53.920 [info] Render performance baseline is 35ms"
+    ],
+    "auth": [
+      "2026-05-05 22:34:43.709 [info] [Auth] Auth state changed to: uninitialized",
+      "2026-05-05 22:34:44.155 [info] [Auth] Auth state changed to: validatingLogin",
+      "2026-05-05 22:34:44.156 [info] [Auth] Auth state changed to: validatingLogin",
+      "2026-05-05 22:34:52.977 [info] OAuth token changed, executing antigravity.handleAuthRefresh",
+      "2026-05-05 22:34:54.337 [info] [Auth] Auth state changed to: signedIn",
+      "2026-05-05 22:34:54.338 [info] [Auth] Auth state changed to: signedIn",
+      "2026-05-05 22:34:54.338 [info] [Auth] AntigravityAuthMainService initialized",
+      "2026-05-05 22:34:54.349 [info] OAuth token changed, executing antigravity.handleAuthRefresh",
+      "2026-05-05 22:39:43.939 [info] OAuth token changed, executing antigravity.handleAuthRefresh",
+      "2026-05-05 22:39:45.761 [info] OAuth token changed, executing antigravity.handleAuthRefresh"
+    ]
+  },
+  "mainThreadLogs": {
+    "cloudcode": [
+      "2026-05-05 22:34:44.156 [error] Failed to set Cloud Code URL on Language Server: Language server client has not been initialized!",
+      "2026-05-05 22:34:48.389 [info] [CloudCode] POST v1internal:loadCodeAssist traceId: 82ea2abaab282440",
+      "2026-05-05 22:34:48.442 [info] [CloudCode] POST v1internal:loadCodeAssist traceId: 9c1da5e89e312a58",
+      "2026-05-05 22:34:50.082 [info] [CloudCode] POST v1internal:fetchAvailableModels traceId: 2b4db1ed8c8e51b5",
+      "2026-05-05 22:34:51.020 [info] [CloudCode] POST v1internal:onboardUser traceId: 38c7892e197b47a6",
+      "2026-05-05 22:34:52.781 [info] [CloudCode] POST v1internal:loadCodeAssist traceId: 64308c49f79e4684",
+      "2026-05-05 22:34:54.333 [info] [CloudCode] POST v1internal:fetchAvailableModels traceId: f3e60714418c5ac6",
+      "2026-05-05 22:39:45.580 [info] [CloudCode] POST v1internal:loadCodeAssist traceId: 6dcaa9239f062557",
+      "2026-05-05 22:39:46.729 [info] [CloudCode] POST v1internal:fetchAvailableModels traceId: dc4193f139dbc3f9"
+    ],
+    "auth": [
+      "2026-05-05 22:34:43.709 [info] [Auth] Auth state changed to: uninitialized",
+      "2026-05-05 22:34:44.155 [info] [Auth] Auth state changed to: validatingLogin",
+      "2026-05-05 22:34:44.156 [info] [Auth] Auth state changed to: validatingLogin",
+      "2026-05-05 22:34:52.977 [info] OAuth token changed, executing antigravity.handleAuthRefresh",
+      "2026-05-05 22:34:54.337 [info] [Auth] Auth state changed to: signedIn",
+      "2026-05-05 22:34:54.338 [info] [Auth] Auth state changed to: signedIn",
+      "2026-05-05 22:34:54.338 [info] [Auth] AntigravityAuthMainService initialized",
+      "2026-05-05 22:34:54.349 [info] OAuth token changed, executing antigravity.handleAuthRefresh",
+      "2026-05-05 22:39:43.939 [info] OAuth token changed, executing antigravity.handleAuthRefresh",
+      "2026-05-05 22:39:45.761 [info] OAuth token changed, executing antigravity.handleAuthRefresh"
+    ],
+    "ls-main": [
+      "2026-05-05 22:34:43.711 [info] [LS Main] Starting language server from: c:\\Users\\Saad\\AppData\\Local\\Programs\\Antigravity\\resources\\app\\extensions\\antigravity\\bin\\language_server_windows_x64.exe",
+      "2026-05-05 22:34:44.040 [info] [LS Main] Args: --csrf_token a55b482d-cd8c-4c2a-96ac-e177e942b436 --extension_server_port 54629 --extension_server_csrf_token 3cc0fd8d-6276-4ba5-9f8c-b360d492c656 --app_data_dir antigravity --cloud_code_endpoint https://cloudcode-pa.googleapis.com",
+      "2026-05-05 22:34:44.129 [info] [LS Main] Process spawned with PID: 5332",
+      "2026-05-05 22:34:44.398 [error] [LS Main stderr] I0505 22:34:44.395668  5332 server.go:1236] Starting language server process with pid 5332",
+      "I0505 22:34:44.397479  5332 server.go:301] Setting GOMAXPROCS to 4",
+      "2026-05-05 22:34:44.409 [error] [LS Main stderr] I0505 22:34:44.409536  5332 server.go:440] Language server will attempt to listen on host 127.0.0.1",
+      "2026-05-05 22:34:44.411 [error] [LS Main stderr] I0505 22:34:44.410659  5332 server.go:454] Language server listening on random port at 54631 for HTTPS (gRPC)",
+      "2026-05-05 22:34:44.411 [error] [LS Main stderr] I0505 22:34:44.411166  5332 server.go:461] Language server listening on random port at 54632 for HTTP",
+      "2026-05-05 22:34:45.015 [error] [LS Main stderr] I0505 22:34:45.014408  5332 server.go:433] Created extension server client at port 54629",
+      "2026-05-05 22:34:45.038 [error] [LS Main stderr] I0505 22:34:45.038258  5332 googleAgent_manager.go:773] Reactive state is disabled",
+      "2026-05-05 22:34:45.061 [info] [LS Main] LS started on port 54631",
+      "2026-05-05 22:34:45.075 [error] [LS Main stderr] I0505 22:34:45.074846  5332 server.go:1693] initialized server successfully in 677.3673ms",
+      "2026-05-05 22:34:48.386 [error] [LS Main stderr] I0505 22:34:48.384444  5332 http_helpers.go:151] URL: https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xd5f2261149307e9d",
+      "2026-05-05 22:34:49.405 [error] [LS Main stderr] I0505 22:34:49.397596  5332 http_helpers.go:151] URL: https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x7ed3aa06a48baa7b",
+      "2026-05-05 22:34:51.100 [error] [LS Main stderr] I0505 22:34:51.100279  5332 http_helpers.go:151] URL: https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x96fc96e04fb3e560",
+      "2026-05-05 22:34:54.553 [error] [LS Main stderr] I0505 22:34:54.552507  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x56bcbb65c78e7966",
+      "2026-05-05 22:34:56.215 [error] [LS Main stderr] I0505 22:34:56.215062  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xc2705962f26c8c00",
+      "2026-05-05 22:34:56.921 [error] [LS Main stderr] I0505 22:34:56.921256  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xd01448b53e6acd5",
+      "2026-05-05 22:35:40.215 [error] [LS Main stderr] E0505 22:35:40.214627  5332 log.go:398] failed to check terminal shell support: internal: internal error",
+      "2026-05-05 22:35:40.289 [error] [LS Main stderr] I0505 22:35:40.288961  5332 planner_generator.go:283] Requesting planner with 35 chat messages at model retry attempt 1 and API retry attempt 1",
+      "2026-05-05 22:35:44.970 [error] [LS Main stderr] I0505 22:35:44.969947  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xb34b03884e1aac17",
+      "2026-05-05 22:38:13.686 [error] [LS Main stderr] E0505 22:38:13.685736  5332 log.go:398] failed to check terminal shell support: internal: internal error",
+      "2026-05-05 22:38:13.716 [error] [LS Main stderr] I0505 22:38:13.715690  5332 planner_generator.go:283] Requesting planner with 37 chat messages at model retry attempt 1 and API retry attempt 1",
+      "2026-05-05 22:38:17.802 [error] [LS Main stderr] I0505 22:38:17.801354  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xfb910170c3316ee",
+      "2026-05-05 22:39:47.241 [error] [LS Main stderr] I0505 22:39:47.239754  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xa70c0f6dd1da6417",
+      "2026-05-05 22:39:48.368 [error] [LS Main stderr] I0505 22:39:48.366499  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x9cfb0ead02a8e8ab",
+      "2026-05-05 22:39:49.391 [error] [LS Main stderr] I0505 22:39:49.390587  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xc9ef3610a6c435d4",
+      "2026-05-05 22:40:48.276 [error] [LS Main stderr] E0505 22:40:48.276219  5332 log.go:398] failed to check terminal shell support: internal: internal error",
+      "2026-05-05 22:40:48.306 [error] [LS Main stderr] I0505 22:40:48.305096  5332 planner_generator.go:283] Requesting planner with 39 chat messages at model retry attempt 1 and API retry attempt 1",
+      "2026-05-05 22:40:51.450 [error] [LS Main stderr] I0505 22:40:51.449700  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x97f16869e439b80",
+      "2026-05-05 22:40:57.608 [error] [LS Main stderr] I0505 22:40:57.607618  5332 planner_generator.go:318] Encountered retryable api error. retrying in 5s. Error (The stream was interrupted. Please continue the task you were working on.): UNAVAILABLE (code 503): The service is currently unavailable.: UNAVAILABLE (code 503): The service is currently unavailable."
+    ]
+  },
+  "languageServerLogs": {
+    "$typeName": "exa.codeium_common_pb.LanguageServerDiagnostics",
+    "logs": [
+      "I0505 22:34:44.395668  5332 server.go:1236] Starting language server process with pid 5332\n",
+      "I0505 22:34:44.397479  5332 server.go:301] Setting GOMAXPROCS to 4\n",
+      "I0505 22:34:44.409536  5332 server.go:440] Language server will attempt to listen on host 127.0.0.1\n",
+      "I0505 22:34:44.410659  5332 server.go:454] Language server listening on random port at 54631 for HTTPS (gRPC)\n",
+      "I0505 22:34:44.411166  5332 server.go:461] Language server listening on random port at 54632 for HTTP\n",
+      "I0505 22:34:45.014408  5332 server.go:433] Created extension server client at port 54629\n",
+      "I0505 22:34:45.038258  5332 googleAgent_manager.go:773] Reactive state is disabled\n",
+      "I0505 22:34:45.074846  5332 server.go:1693] initialized server successfully in 677.3673ms\n",
+      "I0505 22:34:48.384444  5332 http_helpers.go:151] URL: https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xd5f2261149307e9d\n",
+      "I0505 22:34:49.397596  5332 http_helpers.go:151] URL: https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x7ed3aa06a48baa7b\n",
+      "I0505 22:34:51.100279  5332 http_helpers.go:151] URL: https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x96fc96e04fb3e560\n",
+      "I0505 22:34:54.552507  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x56bcbb65c78e7966\n",
+      "I0505 22:34:56.215062  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xc2705962f26c8c00\n",
+      "I0505 22:34:56.921256  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xd01448b53e6acd5\n",
+      "E0505 22:35:40.214627  5332 log.go:398] failed to check terminal shell support: internal: internal error\n",
+      "I0505 22:35:40.288961  5332 planner_generator.go:283] Requesting planner with 35 chat messages at model retry attempt 1 and API retry attempt 1\n",
+      "I0505 22:35:44.969947  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xb34b03884e1aac17\n",
+      "E0505 22:38:13.685736  5332 log.go:398] failed to check terminal shell support: internal: internal error\n",
+      "I0505 22:38:13.715690  5332 planner_generator.go:283] Requesting planner with 37 chat messages at model retry attempt 1 and API retry attempt 1\n",
+      "I0505 22:38:17.801354  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xfb910170c3316ee\n",
+      "I0505 22:39:47.239754  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xa70c0f6dd1da6417\n",
+      "I0505 22:39:48.366499  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x9cfb0ead02a8e8ab\n",
+      "I0505 22:39:49.390587  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xc9ef3610a6c435d4\n",
+      "E0505 22:40:48.276219  5332 log.go:398] failed to check terminal shell support: internal: internal error\n",
+      "I0505 22:40:48.305096  5332 planner_generator.go:283] Requesting planner with 39 chat messages at model retry attempt 1 and API retry attempt 1\n",
+      "I0505 22:40:51.449700  5332 http_helpers.go:151] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x97f16869e439b80\n",
+      "I0505 22:40:57.607618  5332 planner_generator.go:318] Encountered retryable api error. retrying in 5s. Error (The stream was interrupted. Please continue the task you were working on.): UNAVAILABLE (code 503): The service is currently unavailable.: UNAVAILABLE (code 503): The service is currently unavailable.\n"
+    ]
+  },
+  "recentTrajectories": [
+    {
+      "googleAgentId": "2b7705bf-e45b-43cc-af6f-716ea9573e5e",
+      "trajectoryId": "19276736-bc62-4115-9006-e2a957af523e",
+      "summary": "Updating Project README Documentation",
+      "lastStepIndex": 54,
+      "lastModifiedTime": "2026-05-05T17:40:57.604Z"
+    },
+    {
+      "googleAgentId": "b54bf94c-0538-4280-8bee-1ecd15aacced",
+      "trajectoryId": "5ed2d536-3725-4769-88e3-045a460fbadc",
+      "summary": "Implementing LangGraph Logistics Features",
+      "lastStepIndex": 42,
+      "lastModifiedTime": "2026-05-05T11:38:37.675Z"
+    },
+    {
+      "googleAgentId": "ef30e90b-ab19-4740-a10f-61df3f6b5023",
+      "trajectoryId": "95263545-b152-4f2d-b648-31d14bc028bc",
+      "summary": "Integrating LangGraph Into Logistics",
+      "lastStepIndex": 37,
+      "lastModifiedTime": "2026-04-29T08:56:01.879Z"
+    },
+    {
+      "googleAgentId": "3b6db63e-f780-46b2-9d02-1a7277303127",
+      "trajectoryId": "2dbf1304-517f-4cff-bb2e-936102c4713f",
+      "summary": "Standardizing Structured Logging Patterns",
+      "lastStepIndex": 104,
+      "lastModifiedTime": "2026-04-27T13:35:30.490Z"
+    },
+    {
+      "googleAgentId": "f8ba5102-6fc4-4e29-b415-8bb209a06bec",
+      "trajectoryId": "62584e86-a22d-46d0-8655-3b1c4c3c92ab",
+      "summary": "Auditing Project Feature Implementation",
+      "lastStepIndex": 138,
+      "lastModifiedTime": "2026-04-27T11:55:06.615Z"
+    },
+    {
+      "googleAgentId": "2fd51271-17fa-4cd5-bd51-efc46959a781",
+      "trajectoryId": "ff4457fb-942e-4f24-a85c-8861a1ef5dac",
+      "summary": "Evaluating Project Feature Implementation",
+      "lastStepIndex": 103,
+      "lastModifiedTime": "2026-04-27T11:42:14.764Z"
+    },
+    {
+      "googleAgentId": "d6b18366-2ca8-4e11-9687-054682803f17",
+      "trajectoryId": "b3952dc0-b06c-45e1-af38-fd4f5a11a88e",
+      "summary": "Your current version of Antigravity is out of date. Please visit https://antigravity.google/download to download and install the latest version.",
+      "lastStepIndex": 5,
+      "lastModifiedTime": "2026-04-27T11:35:06.128Z"
+    },
+    {
+      "googleAgentId": "bd3e849a-2cc4-4b60-ae90-d05be55cb776",
+      "trajectoryId": "acb91b34-3216-43f8-b5ec-31027ffa5bcc",
+      "summary": "Assessing Project Architectural Implementation",
+      "lastStepIndex": 112,
+      "lastModifiedTime": "2026-04-27T11:28:46.699Z"
+    },
+    {
+      "googleAgentId": "6908485e-15c8-4978-b041-8cf308743f10",
+      "trajectoryId": "6442757e-0f51-4081-9ea0-af0b1707695b",
+      "summary": "getting this error when github runs Run pytest\n  \n============================= test session starts ==============================\nplatform linux -- Python 3.12.13, pytest-9.0.2, pluggy-1.6.0\nrootdir: /home/runner/work/Logistics_System/Logistics_System\nconfigfile: pyproject.toml\nplugins: asyncio-1.3.0, langsmith-0.7.36, anyio-4.12.1\nasyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function\ncollected 0 items / 3 errors\n==================================== ERRORS ====================================\n_______________ ERROR collecting test/test_shipment_advanced.py ________________\nImportError while importing test module '/home/runner/work/Logistics_System/Logistics_System/test/test_shipment_advanced.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest/test_shipment_advanced.py:21: in <module>\n    from app.modules.shipments.schema import ShipmentCreate, ShipmentResponse\nE   ModuleNotFoundError: No module named 'app'\n________________ ERROR collecting test/test_shipment_schema.py _________________\nImportError while importing test module '/home/runner/work/Logistics_System/Logistics_System/test/test_shipment_schema.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest/test_shipment_schema.py:4: in <module>\n    from app.modules.shipments.schema import ShipmentCreate\nE   ModuleNotFoundError: No module named 'app'\n________________ ERROR collecting test/test_shipment_service.py ________________\nImportError while importing test module '/home/runner/work/Logistics_System/Logistics_System/test/test_shipment_service.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest/test_shipment_service.py:4: in <module>\n    from app.modules.shipments.service import ShipmentsService\nE   ModuleNotFoundError: No module named 'app'\n=========================== short test summary info ============================\nERROR test/test_shipment_advanced.py\nERROR test/test_shipment_schema.py\nERROR test/test_shipment_service.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!",
+      "lastStepIndex": 24,
+      "lastModifiedTime": "2026-04-26T10:29:20.970Z"
+    }
+  ],
+  "agentStateDebug": {
+    "exportedAt": "2026-05-05T17:41:00.113Z",
+    "conversations": {}
+  },
+  "rpcDebug": []
+}

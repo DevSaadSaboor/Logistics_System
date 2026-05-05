@@ -4,7 +4,7 @@ from langchain_community.vectorstores import PGVector
 from langchain_openai import OpenAIEmbeddings
 from app.modules.AI.knowledge_loader import load_documents
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
 
 
 CONNECTION_STRING = os.getenv("SYNC_DATABASE_URL")
