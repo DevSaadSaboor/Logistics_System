@@ -1,111 +1,139 @@
-# Logistics Backend
+<div align="center">
 
-FastAPI backend for a multi-tenant logistics system with tenant management, JWT authentication, shipment tracking, AI-based shipment categorization, vector-similarity search, a RAG-powered Q&A assistant, and a **LangGraph agentic assistant** with intent classification.
+# 🚚 Logistics Backend
 
-## Overview
+**A production-grade, multi-tenant logistics REST API with AI-powered shipment intelligence**
+
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com)
+[![LangGraph](https://img.shields.io/badge/LangGraph-Agentic_AI-FF6B35?style=for-the-badge&logo=langchain&logoColor=white)](https://langchain-ai.github.io/langgraph/)
+[![License](https://img.shields.io/badge/License-Educational-green?style=for-the-badge)](#-license)
+
+*JWT auth · Multi-tenancy · Vector similarity search · RAG Q&A · LangGraph agentic assistant*
+
+</div>
+
+---
+
+## 📋 Table of Contents
+
+- [🌐 Overview](#-overview)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [📁 Project Structure](#-project-structure)
+- [🚀 Setup & Installation](#-setup--installation)
+- [🐳 Docker](#-docker)
+- [🔐 Authentication & Tenant Context](#-authentication--tenant-context)
+- [🔄 Shipment Lifecycle](#-shipment-lifecycle)
+- [🤖 AI Features](#-ai-features)
+  - [AI Categorization](#ai-categorization)
+  - [Vector Similarity Search](#vector-similarity-search)
+  - [RAG Q&A Assistant](#rag-qa-assistant)
+  - [LangGraph Agentic Assistant](#langgraph-agentic-assistant)
+- [📡 API Reference](#-api-reference)
+- [🚦 Error Handling](#-error-handling)
+- [📝 Example Payloads](#-example-payloads)
+- [🧪 Running Tests](#-running-tests)
+- [📌 Notes](#-notes)
+- [📄 License](#-license)
+
+---
+
+## 🌐 Overview
 
 This project provides a REST API for:
 
-- Managing tenants and performing soft-deletes
-- Registering and authenticating users per tenant (with refresh token support)
-- Creating and tracking shipments with auto-calculated expected delivery dates
-- Updating shipment status through a defined lifecycle
-- Categorizing shipments with OpenAI when an API key is configured
-- Finding similar shipments using pgvector cosine-distance search
-- Answering company policy and logistics questions via a RAG (Retrieval-Augmented Generation) assistant
-- Answering logistics questions via a **LangGraph stateful agentic assistant** with intent classification and context-aware generation
+| Feature | Description |
+|---|---|
+| 🏢 **Multi-Tenancy** | Full tenant isolation with slug-based routing, soft-delete, and RBAC |
+| 🔑 **JWT Auth** | Register & authenticate users per tenant with access + refresh token flow |
+| 📦 **Shipment Tracking** | Create & track shipments with auto-calculated delivery dates |
+| 🔄 **Lifecycle Management** | Advance shipment status through a strict defined pipeline |
+| 🤖 **AI Categorization** | Auto-classify shipments by description using `gpt-4o-mini` |
+| 🔍 **Vector Search** | Find semantically similar shipments via pgvector cosine distance |
+| 💬 **RAG Assistant** | Answer policy questions grounded exclusively in your knowledge base |
+| 🧠 **LangGraph Agent** | Intent-aware stateful graph: classify → retrieve → generate |
+| 📐 **Auto Delivery Dates** | Haversine geocoding + weight surcharges + weekend skipping |
 
-The API is built with asynchronous SQLAlchemy sessions and PostgreSQL, and uses Alembic for schema migrations.
+> Built with async SQLAlchemy + PostgreSQL. Schema migrations managed by Alembic.
 
-## Stack
+---
+
+## 🛠️ Tech Stack
+
+<details>
+<summary><strong>View full technology stack</strong></summary>
 
 | Layer | Technology |
 |---|---|
 | Language | Python 3.11+ |
 | Framework | FastAPI |
 | ORM | SQLAlchemy 2.x async |
-| Database | PostgreSQL with `asyncpg` |
-| Vector Search | `pgvector` (SQLAlchemy integration included) |
+| Database | PostgreSQL + `asyncpg` |
+| Vector Search | `pgvector` (SQLAlchemy integration) |
 | Migrations | Alembic |
 | Validation | Pydantic v2 |
 | Auth | `python-jose` + `passlib[bcrypt]` |
-| AI (Categorization) | OpenAI SDK — `gpt-4o-mini` |
-| AI (Embeddings) | OpenAI SDK — `text-embedding-3-small` |
-| Geocoding / Distance | `geopy` (Nominatim + great-circle / Haversine) |
+| AI — Categorization | OpenAI SDK — `gpt-4o-mini` |
+| AI — Embeddings | OpenAI SDK — `text-embedding-3-small` |
+| Geocoding / Distance | `geopy` (Nominatim + Haversine) |
 | RAG | `langchain-community` + `langchain-openai` + `langchain-text-splitters` |
-| Agentic AI | `langgraph` — stateful graph with classify → retrieve → generate nodes |
+| Agentic AI | `langgraph` — stateful classify → retrieve → generate graph |
 | RAG Vector Store | PGVector via `psycopg2-binary` |
-| Retry logic | `tenacity` |
+| Retry Logic | `tenacity` (exponential back-off, up to 3 retries) |
 | Linting | `ruff` |
 | Testing | `pytest` + `pytest-asyncio` |
 
-## Project Structure
+</details>
+
+---
+
+## 📁 Project Structure
+
+<details>
+<summary><strong>Expand file tree</strong></summary>
 
 ```text
 logistics_backend/
-├── .env                    # (Create this file for local secrets)
-├── env.example             # Environment variable template
+├── .env                          # Local secrets (create from env.example)
+├── env.example                   # Environment variable template
 ├── alembic.ini
 ├── docker-compose.yml
 ├── requirements.txt
 ├── data/
-│   └── logistics_docs.txt  # Company knowledge base for the RAG assistant
+│   └── logistics_docs.txt        # Company knowledge base for the RAG assistant
 ├── app/
-│   ├── main.py
+│   ├── main.py                   # FastAPI app, routers, exception handlers
 │   ├── core/
 │   │   ├── base.py
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── dependencies.py
-│   │   ├── exceptions.py       # Custom exception classes + global handlers
-│   │   ├── logging.py          # Structured logger setup
-│   │   ├── security.py
+│   │   ├── config.py             # Settings loaded from .env
+│   │   ├── database.py           # Async engine + session factory
+│   │   ├── dependencies.py       # Shared FastAPI dependencies
+│   │   ├── exceptions.py         # Custom exception classes + global handlers
+│   │   ├── logging.py            # Structured logger setup
+│   │   ├── security.py           # JWT + password hashing
 │   │   └── utility.py
 │   ├── shared/
-│   │   ├── base_model.py       # Shared SQLAlchemy base model with UUID PK
-│   │   └── enums.py            # Shared enums (e.g. UserRole)
+│   │   ├── base_model.py         # SQLAlchemy base model with UUID PK
+│   │   └── enums.py              # Shared enums (e.g. UserRole)
 │   └── modules/
 │       ├── AI/
 │       │   ├── Langgraph/
-│       │   │   ├── graph.py        # StateGraph: classify → retrieve → generate
-│       │   │   ├── node.py         # classify_node, retriever_node, generate_node
-│       │   │   ├── state.py        # AgentState TypedDict
-│       │   │   └── memory.py       # (Session memory — reserved for future use)
-│       │   ├── categorizer.py      # OpenAI shipment categorizer
+│       │   │   ├── graph.py      # StateGraph: classify → retrieve → generate
+│       │   │   ├── node.py       # classify_node, retriever_node, generate_node
+│       │   │   ├── state.py      # AgentState TypedDict
+│       │   │   └── memory.py     # Session memory (reserved for future multi-turn)
+│       │   ├── categorizer.py    # OpenAI shipment categorizer
 │       │   ├── knowledge_loader.py # Loads and chunks logistics_docs.txt
-│       │   ├── rag_service.py      # RAG pipeline (retrieve → generate)
-│       │   ├── router.py           # /ai/ask, /ai/search, /ai/assistant endpoints
-│       │   ├── schema.py           # AssistantRequest / AssistantResponse schemas
-│       │   └── vector_store.py     # PGVector store setup and ingestion
-│       ├── auth/
-│       │   ├── dependencies.py
-│       │   ├── models.py
-│       │   ├── repository.py
-│       │   ├── router.py
-│       │   ├── schema.py
-│       │   └── service.py
-│       ├── shipments/
-│       │   ├── ai_service.py        # Async categorization + embedding generation
-│       │   ├── enum.py
-│       │   ├── models.py
-│       │   ├── repository.py
-│       │   ├── router.py
-│       │   ├── schema.py
-│       │   └── service.py
-│       ├── tenants/
-│       │   ├── dependencies.py
-│       │   ├── models.py
-│       │   ├── repository.py
-│       │   ├── router.py
-│       │   ├── schema.py
-│       │   └── service.py
-│       └── users/
-│           ├── dependencies.py
-│           ├── models.py
-│           ├── respository.py
-│           ├── router.py
-│           ├── schema.py
-│           └── service.py
+│       │   ├── rag_service.py    # RAG pipeline (retrieve → generate)
+│       │   ├── router.py         # /ai/ask  /ai/search  /ai/assistant
+│       │   ├── schema.py         # AssistantRequest / AssistantResponse schemas
+│       │   └── vector_store.py   # PGVector store setup and ingestion
+│       ├── auth/                 # Refresh token management, /auth/me
+│       ├── shipments/            # CRUD, status lifecycle, AI service
+│       ├── tenants/              # Tenant CRUD + soft-delete
+│       └── users/                # Registration, login, token refresh
 ├── migrations/
 └── test/
     ├── conftest.py
@@ -114,43 +142,62 @@ logistics_backend/
     └── test_shipment_service.py
 ```
 
-## Setup
+</details>
 
-### 1. Create a virtual environment
+---
+
+## 🚀 Setup & Installation
+
+### Prerequisites
+
+- Python 3.11+
+- PostgreSQL with the `pgvector` extension
+- An OpenAI API key *(optional — enables all AI features)*
+
+---
+
+<details>
+<summary><strong>Step 1 — Create and activate a virtual environment</strong></summary>
 
 ```bash
 python -m venv venv
 ```
 
-Activate it:
-
 ```bash
-# Windows
-venv\Scripts\activate
-
 # macOS / Linux
 source venv/bin/activate
+
+# Windows
+venv\Scripts\activate
 ```
 
-### 2. Install dependencies
+</details>
+
+---
+
+<details>
+<summary><strong>Step 2 — Install dependencies</strong></summary>
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Configure environment variables
+</details>
 
-Copy the provided template to create your `.env` file in the project root:
+---
+
+<details>
+<summary><strong>Step 3 — Configure environment variables</strong></summary>
 
 ```bash
-# Windows
-copy env.example .env
-
 # macOS / Linux
 cp env.example .env
+
+# Windows
+copy env.example .env
 ```
 
-Ensure your `.env` file contains your real credentials:
+Edit `.env` with your credentials:
 
 ```env
 DATABASE_URL=postgresql+asyncpg://postgres:yourpassword@localhost:5432/logistics
@@ -162,99 +209,129 @@ OPENAI_API_KEY=sk-...
 |---|---|---|
 | `DATABASE_URL` | ✅ | Async PostgreSQL connection string |
 | `SECRET_KEY` | ✅ | Used for JWT signing |
-| `OPENAI_API_KEY` | ❌ | Enables AI categorization, embedding generation, the RAG assistant, and the LangGraph agentic assistant |
+| `OPENAI_API_KEY` | ❌ | Enables AI categorization, embeddings, RAG, and LangGraph |
 
-### 4. Enable pgvector
+</details>
 
-The `embedding` column and the RAG vector store both use the `pgvector` PostgreSQL extension. Enable it once in your database:
+---
+
+<details>
+<summary><strong>Step 4 — Enable pgvector extension</strong></summary>
+
+Run once in your PostgreSQL database:
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS vector;
 ```
 
-### 5. Run migrations
+</details>
+
+---
+
+<details>
+<summary><strong>Step 5 — Run database migrations</strong></summary>
 
 ```bash
 alembic upgrade head
 ```
 
-### 6. Ingest company knowledge (RAG assistant)
+</details>
 
-Before the `/ai/ask` and `/ai/assistant` endpoints can answer questions, the contents of `data/logistics_docs.txt` must be split and stored in the PGVector collection. Run the ingestion script once:
+---
+
+<details>
+<summary><strong>Step 6 — Ingest the company knowledge base (RAG)</strong></summary>
+
+Run once before using `/ai/ask` or `/ai/assistant`. Re-run whenever `data/logistics_docs.txt` is updated.
 
 ```bash
 python -c "from app.modules.AI.vector_store import create_vector_store; create_vector_store()"
 ```
 
-This only needs to be run once (or whenever `logistics_docs.txt` is updated).
+</details>
 
-### 7. Start the API
+---
+
+<details>
+<summary><strong>Step 7 — Start the API server</strong></summary>
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-Swagger docs will be available at `http://127.0.0.1:8000/docs`.
+Swagger UI → [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-## Docker
+</details>
 
-You can also run the project with Docker Compose:
+---
+
+## 🐳 Docker
+
+Spin up the full stack (PostgreSQL + FastAPI) with a single command:
 
 ```bash
 docker compose up --build
 ```
 
-The compose file starts:
+| Service | Port |
+|---|---|
+| FastAPI | `localhost:8000` |
+| PostgreSQL | `localhost:5432` |
 
-- PostgreSQL on `localhost:5432`
-- FastAPI on `localhost:8000`
+---
 
-## Authentication and Tenant Context
+## 🔐 Authentication & Tenant Context
 
-This API is multi-tenant. Some endpoints require the `X-Tenant-Slug` header so the request can be resolved to the correct tenant.
+This API is **multi-tenant**. Tenant-scoped endpoints require the `X-Tenant-Slug` header, and protected endpoints require a bearer token:
 
-Protected endpoints also require a bearer token:
-
-```text
+```http
 Authorization: Bearer <access_token>
+X-Tenant-Slug: my-company
 ```
 
-Tenant-scoped protected endpoints also enforce:
-
-- the authenticated user belongs to the same tenant resolved from `X-Tenant-Slug`
-- role-based access control (RBAC) for allowed roles per endpoint
-
-If tenant and token user do not match, the API returns `403`.
+Tenant-scoped endpoints enforce:
+- ✅ The authenticated user belongs to the tenant resolved from `X-Tenant-Slug`
+- ✅ Role-based access control (RBAC) per endpoint
 
 **Typical flow:**
 
-1. Create a tenant via `POST /tenants/`.
-2. Register a user with that tenant's slug in the `X-Tenant-Slug` header.
-3. Log in with the same header to receive an access token and a refresh token.
-4. Call protected shipment endpoints with both the bearer token and the tenant header.
-5. Use `POST /auth/refresh` to obtain a new access token when it expires.
+```
+1. POST /tenants/          → create a tenant
+2. POST /auth/register     → register a user (X-Tenant-Slug required)
+3. POST /auth/login        → receive access_token + refresh_token
+4. Call shipment endpoints → Bearer token + X-Tenant-Slug
+5. POST /auth/refresh      → renew access_token when it expires
+```
 
-## Shipment Lifecycle
+> If the token's tenant and `X-Tenant-Slug` don't match, the API returns `403 Forbidden`.
 
-Supported statuses and their allowed transitions:
+---
+
+## 🔄 Shipment Lifecycle
+
+Shipments progress through a strict, one-directional state machine:
 
 ```
 CREATED → ASSIGNED → PICKED_UP → IN_TRANSIT → DELIVERED
 ```
 
-To advance a shipment's status, send a `PATCH` request with the `status` field:
+Advance a shipment's status with a `PATCH` request:
 
 ```json
 { "status": "ASSIGNED" }
 ```
 
-## AI Categorization
+Every transition is recorded in the `Shipment_Status_Log` table with a timestamp, location, and the acting user's ID.
 
-When a shipment is created, the API schedules background categorization using the shipment's description. You can also trigger it manually.
+---
 
-**Model used:** `gpt-4o-mini`
+## 🤖 AI Features
 
-**Supported categories:**
+### AI Categorization
+
+Shipments are categorized automatically in the background on creation, or triggered manually via `POST /shipments/{id}/categorize`.
+
+**Model:** `gpt-4o-mini` · **Retry:** up to 3× with exponential back-off via `tenacity`
 
 | Category | Description |
 |---|---|
@@ -264,113 +341,136 @@ When a shipment is created, the API schedules background categorization using th
 | `furniture` | Large household or office items |
 | `hazardous` | Dangerous or regulated materials |
 | `clothing` | Garments and textiles |
-| `other` | Default fallback category |
+| `other` | Default fallback |
 
-If `OPENAI_API_KEY` is missing or categorization fails, the shipment defaults to `category = "other"` and `confidence = 0.0`. The `ai_processed` flag tracks whether categorization has completed. Failed calls are retried up to 3 times with exponential back-off via `tenacity`.
+> If `OPENAI_API_KEY` is absent or categorization fails, the shipment defaults to `category = "other"` and `confidence = 0.0`. The `ai_processed` flag tracks whether categorization has completed.
 
-## Vector Similarity Search
+---
 
-After a shipment is categorized, the AI service also generates a 1536-dimension OpenAI embedding from the shipment's description using `text-embedding-3-small` and stores it in the `embedding` column (pgvector `vector(1536)` type).
+### Vector Similarity Search
 
-The `/similar` endpoint uses cosine distance (`<=>`) on these embeddings to return the most semantically similar shipments within the same tenant.
+After categorization, a **1536-dimension embedding** is generated from the shipment description using `text-embedding-3-small` and stored in the `embedding` pgvector column (`vector(1536)`).
 
-**How similarity is calculated:**
+The `/similar` endpoint returns semantically similar shipments within the same tenant using **cosine distance**:
 
 ```
-similarity = 1 - cosine_distance(query_embedding, candidate_embedding)
+similarity = 1 − cosine_distance(query_embedding, candidate_embedding)
 ```
 
-A value of `1.0` means identical, `0.0` means completely unrelated. By default only results with `similarity >= 0.7` are returned.
+| Score | Meaning |
+|---|---|
+| `1.0` | Identical |
+| `≥ 0.7` | Default minimum threshold |
+| `0.0` | Completely unrelated |
 
-## RAG Q&A Assistant
+> Only shipments with a populated `embedding` (i.e., AI-processed) appear as candidates.
 
-The `/ai/ask` endpoint lets clients ask natural-language questions about company policies and logistics procedures. Answers are grounded exclusively in the content of `data/logistics_docs.txt` — the model will not hallucinate outside that context.
+---
 
-**How it works:**
+### RAG Q&A Assistant
 
-1. The question is embedded with `text-embedding-3-small`.
-2. The top-3 most relevant document chunks are retrieved from the PGVector store (`logistics_docs` collection).
-3. The chunks are passed as context to `gpt-4o-mini`, which generates a grounded answer.
-4. The response includes the answer and the source section headings used.
+`POST /ai/ask` answers natural-language questions grounded **exclusively** in `data/logistics_docs.txt` — the model won't hallucinate outside that context.
 
-If the answer is not covered by the knowledge base, the model replies: *"I don't know based on company policy."*
+**Pipeline:**
 
-## LangGraph Agentic Assistant
+```
+User question
+     ↓
+Embed with text-embedding-3-small
+     ↓
+Retrieve top-3 chunks from PGVector (logistics_docs collection)
+     ↓
+Generate grounded answer with gpt-4o-mini
+     ↓
+Return answer + source section headings
+```
 
-The `/ai/assistant` endpoint is powered by a **LangGraph stateful graph** that provides more intelligent, intent-aware responses compared to the basic RAG pipeline.
+> If the answer isn't covered by the knowledge base, the model replies: *"I don't know based on company policy."*
+
+---
+
+### LangGraph Agentic Assistant
+
+`POST /ai/assistant` runs a **stateful LangGraph graph** with intent classification — more intelligent than the plain RAG pipeline.
 
 **Graph flow:**
 
 ```
-classify → retriever → generate → END
+[classify] → [retriever] → [generate] → END
 ```
 
 | Node | Responsibility |
 |---|---|
-| `classify` | Detects user intent (`shipment` or `policy`) from the question |
-| `retriever` | Performs semantic search over the knowledge base; applies query expansion for delay/lateness queries and re-ranks results by keyword overlap |
-| `generate` | Calls `gpt-4o-mini` with the retrieved context to produce a grounded answer |
+| `classify` | Detects intent: `shipment` or `policy` |
+| `retriever` | Semantic search + query expansion for delay/lateness queries + keyword re-ranking |
+| `generate` | Calls `gpt-4o-mini` with retrieved context to produce a grounded answer |
 
-**AgentState fields:**
+<details>
+<summary><strong>AgentState fields</strong></summary>
 
 | Field | Type | Description |
 |---|---|---|
 | `question` | `str` | The user's question |
-| `session_id` | `str \| None` | Optional session identifier for future memory support |
-| `messages` | `list[dict]` | Conversation history (reserved for multi-turn memory) |
+| `session_id` | `str \| None` | Optional session ID for future multi-turn memory |
+| `messages` | `list[dict]` | Conversation history (reserved) |
 | `intent` | `str \| None` | Classified intent: `shipment` or `policy` |
 | `context` | `str \| None` | Retrieved document context passed to the generator |
 | `answer` | `str \| None` | Final generated answer |
 
-The graph is compiled per-request with access to the async database session via `build_graph(db)`.
+</details>
 
-## API Endpoints
+> The graph is compiled per-request via `build_graph(db)` so the async DB session is correctly scoped to each request lifecycle.
 
-### Health
+---
+
+## 📡 API Reference
+
+### 🏥 Health
 
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/` | Health check |
 
-### Tenants
+### 🏢 Tenants
 
-| Method | Path | Description | Auth required |
+| Method | Path | Description | Auth |
 |---|---|---|---|
-| `POST` | `/tenants/` | Create a new tenant | Bearer (`admin`) |
+| `POST` | `/tenants/` | Create a tenant | Bearer (`admin`) |
 | `GET` | `/tenants/` | List all tenants | Bearer (`admin`) |
 | `DELETE` | `/tenants/{tenant_id}` | Soft-delete a tenant | Bearer (`admin`) |
 
-### Auth
+### 🔑 Auth
 
-| Method | Path | Description | Auth required |
+| Method | Path | Description | Auth |
 |---|---|---|---|
-| `POST` | `/auth/register` | Register a user for a tenant | `X-Tenant-Slug` |
-| `POST` | `/auth/login` | Log in and receive access + refresh tokens | `X-Tenant-Slug` |
-| `GET` | `/auth/me` | Get current authenticated user | Bearer |
-| `POST` | `/auth/refresh` | Refresh access token using refresh token | `X-Tenant-Slug` |
+| `POST` | `/auth/register` | Register a user | `X-Tenant-Slug` |
+| `POST` | `/auth/login` | Login → access + refresh tokens | `X-Tenant-Slug` |
+| `GET` | `/auth/me` | Get current user | Bearer |
+| `POST` | `/auth/refresh` | Refresh access token | `X-Tenant-Slug` |
 
-### Shipments
+### 📦 Shipments
 
-| Method | Path | Description | Auth required |
+| Method | Path | Description | Auth |
 |---|---|---|---|
-| `POST` | `/shipments/` | Create a shipment | Bearer (`admin` or `operator`) + `X-Tenant-Slug` |
-| `PATCH` | `/shipments/{shipment_id}/status` | Update shipment status | Bearer (`admin` or `operator`) + `X-Tenant-Slug` |
+| `POST` | `/shipments/` | Create a shipment | Bearer (`admin`/`operator`) + Slug |
+| `PATCH` | `/shipments/{id}/status` | Update status | Bearer (`admin`/`operator`) + Slug |
 | `GET` | `/shipments/track/{tracking_number}` | Public tracking lookup | — |
-| `POST` | `/shipments/{shipment_id}/categorize` | Trigger AI categorization | Bearer (`admin` or `operator`) + `X-Tenant-Slug` |
-| `GET` | `/shipments/{shipment_id}/category` | Get categorization result | Bearer (`admin`, `operator`, or `viewer`) + `X-Tenant-Slug` |
-| `GET` | `/shipments/{shipment_id}/similar` | Find similar shipments by embedding | Bearer (`admin`, `operator`, or `viewer`) + `X-Tenant-Slug` |
+| `POST` | `/shipments/{id}/categorize` | Trigger AI categorization | Bearer (`admin`/`operator`) + Slug |
+| `GET` | `/shipments/{id}/category` | Get categorization result | Bearer (any role) + Slug |
+| `GET` | `/shipments/{id}/similar` | Find similar shipments | Bearer (any role) + Slug |
 
-#### `GET /shipments/{shipment_id}/similar` — Query Parameters
+<details>
+<summary><strong>GET /shipments/{id}/similar — query parameters & response</strong></summary>
+
+**Query parameters:**
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `min_similarity` | `float` | `0.7` | Minimum cosine similarity score (0.0–1.0) |
-| `limit` | `int` | `5` | Maximum number of results to return |
-| `offset` | `int` | `0` | Number of results to skip (for pagination) |
+| `min_similarity` | `float` | `0.7` | Minimum cosine similarity (0.0–1.0) |
+| `limit` | `int` | `5` | Max results to return |
+| `offset` | `int` | `0` | Pagination offset |
 
-#### `GET /shipments/{shipment_id}/similar` — Response
-
-Returns a list of `SimilarShipmentResponse` objects, each containing the matching shipment and its computed similarity score:
+**Response:**
 
 ```json
 [
@@ -382,74 +482,26 @@ Returns a list of `SimilarShipmentResponse` objects, each containing the matchin
       "origin": "Karachi",
       "destination": "Lahore",
       "category": "electronics",
-      "confidence": 0.94,
-      "..."
+      "confidence": 0.94
     },
     "similarity": 0.9312
   }
 ]
 ```
 
-> **Note:** The endpoint only returns results for shipments that have had AI processing completed (i.e. their `embedding` is populated). If the source shipment has no embedding, an empty list is returned.
+</details>
 
-### AI Assistant
+### 🧠 AI Assistant
 
-| Method | Path | Description | Auth required |
+| Method | Path | Description | Auth |
 |---|---|---|---|
-| `POST` | `/ai/ask` | RAG Q&A — ask a question grounded in the knowledge base | — |
-| `POST` | `/ai/search` | Semantic document search over the knowledge base | — |
-| `POST` | `/ai/assistant` | LangGraph agentic assistant with intent classification | — |
+| `POST` | `/ai/ask` | RAG Q&A grounded in the knowledge base | — |
+| `POST` | `/ai/search` | Semantic document search | — |
+| `POST` | `/ai/assistant` | LangGraph agentic assistant | — |
 
-#### `POST /ai/ask` — Request
+---
 
-```json
-{ "question": "What is the standard delivery SLA?" }
-```
-
-#### `POST /ai/ask` — Response
-
-```json
-{
-  "answer": "Standard delivery takes 3–5 business days depending on distance and weight.",
-  "sources": ["Delivery SLA Policy"]
-}
-```
-
-#### `POST /ai/assistant` — Request
-
-```json
-{
-  "query": "Why is my shipment delayed?",
-  "session_id": "user-abc-123"
-}
-```
-
-#### `POST /ai/assistant` — Response
-
-```json
-{
-  "answer": "Shipment delays may occur due to customs clearance, weather conditions, or high volume periods. Please contact support with your tracking number for a specific update."
-}
-```
-
-## Authorization and Error Semantics
-
-This API enforces consistent auth/tenant/RBAC responses:
-
-- `401 Unauthorized` for invalid or missing authentication credentials (invalid JWT or login credentials)
-- `403 Forbidden` for valid users without required role permissions, or tenant mismatch between token user and `X-Tenant-Slug`
-- `404 Not Found` when requested tenant or shipment does not exist in context
-- `400 Bad Request` for validation/business-rule conflicts (e.g. duplicate tenant name, duplicate user in tenant)
-- `422 Unprocessable Entity` for Pydantic request body validation failures
-
-Common response messages include:
-
-- `Unauthorized: invalid access token`
-- `Unauthorized: invalid credentials`
-- `Forbidden: insufficient role permissions`
-- `Forbidden: user does not belong to requested tenant`
-- `Tenant not found for provided X-Tenant-Slug`
-- `Shipment not found`
+## 🚦 Error Handling
 
 All error responses follow a consistent JSON envelope:
 
@@ -460,14 +512,32 @@ All error responses follow a consistent JSON envelope:
 }
 ```
 
-## Example Payloads
+| Status | When |
+|---|---|
+| `400 Bad Request` | Business rule conflict (e.g. duplicate tenant or user) |
+| `401 Unauthorized` | Invalid or missing JWT / credentials |
+| `403 Forbidden` | Insufficient role, or tenant mismatch |
+| `404 Not Found` | Tenant or shipment not found in context |
+| `422 Unprocessable Entity` | Pydantic request validation failure |
 
-### Create Shipment
+**Common error messages:**
 
-The `expected_delivery_date` is **automatically calculated** by the server — you do not need to provide it.
+- `Unauthorized: invalid access token`
+- `Forbidden: insufficient role permissions`
+- `Forbidden: user does not belong to requested tenant`
+- `Tenant not found for provided X-Tenant-Slug`
+- `Shipment not found`
 
-**Request body:**
+---
 
+## 📝 Example Payloads
+
+<details>
+<summary><strong>Create Shipment</strong></summary>
+
+> `expected_delivery_date` is **auto-calculated** by the server — do not provide it.
+
+**Request:**
 ```json
 {
   "origin": "Karachi",
@@ -481,8 +551,7 @@ The `expected_delivery_date` is **automatically calculated** by the server — y
 }
 ```
 
-**Response includes the calculated `expected_delivery_date`:**
-
+**Response:**
 ```json
 {
   "id": "...",
@@ -502,36 +571,83 @@ The `expected_delivery_date` is **automatically calculated** by the server — y
 }
 ```
 
-**Delivery date calculation logic:**
+**Delivery date calculation:**
 
 | Factor | Rule |
 |---|---|
-| Distance | Real coordinates fetched via Geopy (Nominatim); great-circle distance calculated using the Haversine formula. Falls back to 100 km if geocoding fails. |
-| Base transit days | 1 day per 400 km (minimum 1 day) |
-| Weight surcharge | +1 day per every 50 kg |
-| Weekends | Saturdays and Sundays are skipped automatically |
+| Distance | Real coordinates via Geopy (Nominatim) + Haversine formula. Fallback: 100 km |
+| Base transit | 1 day per 400 km (minimum 1 day) |
+| Weight surcharge | +1 day per 50 kg |
+| Weekends | Saturdays and Sundays skipped automatically |
 
 **Validation rules:**
 
-- `weight`: must be positive and ≤ 10,000
-- `recipient_phone`: digits only, length between 8 and 20
-- `description`: minimum 10 characters after trimming whitespace
+| Field | Rule |
+|---|---|
+| `weight` | Must be positive and ≤ 10,000 |
+| `recipient_phone` | Digits only, length 8–20 |
+| `description` | Minimum 10 characters after trimming whitespace |
 
-### Update Shipment Status
+</details>
+
+---
+
+<details>
+<summary><strong>Update Shipment Status</strong></summary>
 
 ```json
 { "status": "PICKED_UP" }
 ```
 
-## Running Tests
+</details>
 
-All tests live inside the `test/` directory and use `unittest` + `pytest` with `AsyncMock` for async service isolation. No real database is required.
+---
 
-| File | What it covers |
-|---|---|
-| `test_shipment_schema.py` | Pydantic validation — valid creation, invalid weight / phone / description |
-| `test_shipment_service.py` | Service layer — create shipment, update status, assign driver, tracking lookup (found & not-found) |
-| `test_shipment_advanced.py` | Edge cases — boundary values, ORM serialization, tracking number format & uniqueness, AI categorization success & fallback, phone masking, multi-entry status history, user_id forwarding |
+<details>
+<summary><strong>POST /ai/ask — RAG Q&A</strong></summary>
+
+**Request:**
+```json
+{ "question": "What is the standard delivery SLA?" }
+```
+
+**Response:**
+```json
+{
+  "answer": "Standard delivery takes 3–5 business days depending on distance and weight.",
+  "sources": ["Delivery SLA Policy"]
+}
+```
+
+</details>
+
+---
+
+<details>
+<summary><strong>POST /ai/assistant — LangGraph Agent</strong></summary>
+
+**Request:**
+```json
+{
+  "query": "Why is my shipment delayed?",
+  "session_id": "user-abc-123"
+}
+```
+
+**Response:**
+```json
+{
+  "answer": "Shipment delays may occur due to customs clearance, weather conditions, or high volume periods. Please contact support with your tracking number for a specific update."
+}
+```
+
+</details>
+
+---
+
+## 🧪 Running Tests
+
+All tests use `unittest` + `pytest` with `AsyncMock` — no real database required.
 
 ```bash
 # Run all tests
@@ -543,21 +659,31 @@ pytest test/test_shipment_service.py -v
 pytest test/test_shipment_advanced.py -v
 ```
 
-## Notes
+| File | Coverage |
+|---|---|
+| `test_shipment_schema.py` | Pydantic validation — valid creation, invalid weight / phone / description |
+| `test_shipment_service.py` | Service layer — create, update status, assign driver, tracking lookup (found & not-found) |
+| `test_shipment_advanced.py` | Edge cases — boundary values, ORM serialization, tracking format & uniqueness, AI categorization success & fallback, phone masking, multi-entry status history, user_id forwarding |
 
-- Shipment tracking masks the recipient phone number and returns the full status history.
-- Tracking numbers are generated in the format `TRK-XXXXXXXX`.
-- Shipment creation automatically writes an initial `CREATED` status log entry.
-- `expected_delivery_date` is **auto-calculated** on the server at creation time — clients do not provide it.
-- The delivery date calculation uses real geocoding (Geopy + Nominatim) and the Haversine formula, skips weekends, and factors in shipment weight.
-- The `Shipment_Status_Log` table records every status transition with a timestamp, location, and the ID of the user who made the update.
-- The `embedding` column is `nullable` — shipments without AI processing simply won't appear as candidates in similarity search results.
-- Embeddings are generated using OpenAI's `text-embedding-3-small` (1536 dimensions) and stored via `pgvector`.
-- The RAG assistant uses a separate PGVector collection (`logistics_docs`) populated from `data/logistics_docs.txt`. Re-run the ingestion script whenever that file is updated.
-- The LangGraph assistant (`/ai/assistant`) builds its graph dynamically per request so the async DB session is properly scoped to each request lifecycle.
-- Structured logging follows the pattern `module.action.event key=value` throughout the codebase for easy log parsing and filtering.
-- The `app/shared/` module contains cross-cutting base models and enums reused across domain modules.
+---
 
-## License
+## 📌 Notes
 
-This project is intended for educational and portfolio use.
+- Tracking numbers are generated in the format `TRK-XXXXXXXX`
+- The recipient phone number is **masked** in public tracking responses
+- Every status transition is logged to `Shipment_Status_Log` with timestamp, location, and user ID
+- The `embedding` column is nullable (`pgvector(1536)`) — shipments without AI processing are excluded from similarity results
+- The LangGraph graph is compiled **per-request** via `build_graph(db)` so the async DB session is properly scoped
+- The RAG assistant uses a **separate** PGVector collection (`logistics_docs`) — re-run the ingestion script whenever `logistics_docs.txt` is updated
+- Structured logging follows the pattern `module.action.event key=value` throughout for easy log parsing and filtering
+- `app/shared/` contains cross-cutting base models and enums reused across all domain modules
+
+---
+
+## 📄 License
+
+<div align="center">
+
+This project is intended for **educational and portfolio use**.
+
+</div>

@@ -29,16 +29,60 @@ def classify_node(state:AgentState):
 
 
 async def retriever_node(state:AgentState,db):
-    query = state["question"].lower()
-    if "delay" in query or "late" in query:
-        query += " shipment delay reason"
-    docs = semantic_search(query)
-    docs = simple_rerank(query,docs)
-    context = "\n\n".join([
-        doc["content"][:300]
-        for doc in docs[:3]
-    ])
-    return {"context": context}
+    intent = state["intent"]
+    query = state["question"]
+
+    if intent == "shipment":
+        logger.info("ai_retrieve.shipment")
+        import re
+        match = re.search(r"TRK-[A-Z0-9]+", query)
+        tracking_number = match.group(0) if match else None 
+        print("QUESTION:", query)
+        print("TRACKING:", tracking_number)
+          
+
+        if not tracking_number:
+            return {
+                "context":"no tracking number in the question"
+            }
+        
+        repo = ShipmentRespository(db)
+        shipment = await repo.get_by_tracking_number(tracking_number)
+        print("SHIPMENT:", shipment)  
+
+        if not shipment:
+            return {
+                "context": f"shipment not found with this tracking number {tracking_number}"
+            }
+        context = {
+            f"""
+        Shipment Details
+        Tracking Number : {shipment.tracking_number}
+        Status: {shipment.status}
+        origin: {shipment.origin}
+        Destination: {shipment.destination}
+        Weight: {shipment.weight}
+        Receipent: {shipment.recipient_name}
+        """
+        }
+        
+        return {
+            "context": context
+        }
+    else:
+        logger.info("ai.retreive.rag")
+
+        query = query.lower()
+        if "delay" in query or "late" in query:
+            query +=   "shipment delay reasons"
+
+        docs = semantic_search(query)
+        context = "\n\n".join([
+            doc["context"][:300]
+            for doc in docs[:3]
+        ])
+        return {"context": context}
+    
 
 async def generate_node(state:AgentState):
     context = state["context"]
@@ -49,10 +93,10 @@ async def generate_node(state:AgentState):
     "content": f"""
     You are a logistics AI assistant.
 
-    Use the provided context to answer the question.
+    If shipment data is provided, explain it clearly to the user.
+    If policy data is provided, answer based on it.
 
-    If the answer is partially available, answer as best as possible.
-    If completely missing, say:
+    If answer is not found, say:
     "I don't know based on company data."
     """},
     {
