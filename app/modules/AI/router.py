@@ -1,9 +1,11 @@
+import uuid
 from fastapi import APIRouter,Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.modules.AI.rag_service import get_rag_answer,semantic_search
 from app.modules.AI.Langgraph.graph import build_graph
+from app.modules.AI.Langgraph.memory import load_messages,save_messages
 from app.modules.AI.schema import AssistantRequest, AssistantResponse
 router = APIRouter(prefix="/ai", tags=["AI"])
 
@@ -30,12 +32,23 @@ async def search(payload: SearchRequest):
 async def assistant(payload:AssistantRequest , db:AsyncSession = Depends(get_db)):
     graph = build_graph(db)
 
+    # Swagger/OpenAPI often sends the placeholder "string" unless user edits it.
+    # Treat common placeholder/empty values as "no session provided".
+    raw_session_id = (payload.session_id or "").strip()
+    session_id = raw_session_id if raw_session_id and raw_session_id.lower() != "string" else str(uuid.uuid4())
+    messages = await load_messages(db,session_id)
+
+
     result = await graph.ainvoke({
         "question":payload.query,
-        "session_id": payload.session_id or "default",
-        "messages": []
+        "session_id": session_id,
+        "messages": messages
     })
 
+    await save_messages(db,session_id,"assistant",result["answer"])
+
     return {
+        
+        "session_id": session_id,
         "answer": result["answer"]
     }
