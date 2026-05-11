@@ -1,5 +1,3 @@
-import os
-
 from datetime import timedelta
 
 from pydantic_settings import BaseSettings
@@ -10,8 +8,8 @@ class Settings(BaseSettings):
     # -----------------------------------
     # Database
     # -----------------------------------
-    DATABASE_URL: str
-    SYNC_DATABASE_URL: str
+    DATABASE_URL: str | None = None
+    SYNC_DATABASE_URL: str | None = None
 
     # -----------------------------------
     # Security

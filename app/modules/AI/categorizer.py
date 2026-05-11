@@ -5,7 +5,7 @@ from tenacity import retry ,stop_after_attempt , wait_exponential
 from pydantic import BaseModel, field_validator,Field
 from openai import OpenAI
 import json
-load_dotenv()
+load_dotenv(override=True)
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
 CATEGORIES = [
