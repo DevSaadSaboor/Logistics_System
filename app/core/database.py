@@ -4,25 +4,45 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
     AsyncSession,
 )
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+
+from sqlalchemy.orm import (
+    sessionmaker,
+    DeclarativeBase,
+)
 
 from app.core.config import settings
 
 
-# Base class for all models
+# -----------------------------------
+# Base class for all SQLAlchemy models
+# -----------------------------------
 class Base(DeclarativeBase):
     pass
 
 
-# Create async engine/session only when DATABASE_URL exists.
-# This avoids import-time crashes in test environments that don't provide DB env vars.
+# -----------------------------------
+# Convert sync PostgreSQL URL
+# to asyncpg URL for async SQLAlchemy
+# -----------------------------------
+DATABASE_URL = None
+
+if settings.DATABASE_URL:
+    DATABASE_URL = settings.DATABASE_URL.replace(
+        "postgresql://",
+        "postgresql+asyncpg://"
+    )
+
+
+# -----------------------------------
+# Engine + Session Factory
+# -----------------------------------
 engine = None
 AsyncSessionLocal = None
 
-if settings.DATABASE_URL:
+if DATABASE_URL:
     engine = create_async_engine(
-        settings.DATABASE_URL,
-        echo=True,  # shows SQL queries in terminal (good for learning)
+        DATABASE_URL,
+        echo=True,  # logs SQL queries
     )
 
     AsyncSessionLocal = sessionmaker(
@@ -32,47 +52,54 @@ if settings.DATABASE_URL:
     )
 
 
-# Dependency for FastAPI
+# -----------------------------------
+# FastAPI DB Dependency
+# -----------------------------------
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
+
     if AsyncSessionLocal is None:
-        raise RuntimeError("DATABASE_URL is not configured.")
+        raise RuntimeError(
+            "DATABASE_URL is not configured."
+        )
+
     async with AsyncSessionLocal() as session:
         yield session
 
 
+# -----------------------------------
+# Explanation
+# -----------------------------------
 
 # 1️⃣ engine
-
+#
 # The engine knows:
+#
+# - where the database is
+# - which driver to use
+# - how to connect
+#
+# It does NOT execute business logic.
 
-# Where the database is
-
-# Which driver to use (asyncpg)
-
-# It does NOT run queries itself.
 
 # 2️⃣ AsyncSessionLocal
-
-# This is a factory.
-
+#
+# This is a session factory.
+#
 # Every request:
+#
+# - creates a DB session
+# - performs queries
+# - closes automatically
 
-# Creates a session
-
-# Talks to DB
-
-# Closes automatically
 
 # 3️⃣ get_db()
-
-# This is what FastAPI will use:
-
+#
+# FastAPI dependency injection:
+#
 # db: AsyncSession = Depends(get_db)
-
-# And FastAPI will:
-
-# Open session
-
-# Inject it
-
-# Close it automatically
+#
+# FastAPI automatically:
+#
+# - opens session
+# - injects it
+# - closes it
