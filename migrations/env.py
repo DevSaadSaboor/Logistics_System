@@ -25,19 +25,39 @@ config = context.config
 # -----------------------------------
 # Read DB URL from environment
 # -----------------------------------
-db_url = os.getenv("SYNC_DATABASE_URL") or os.getenv("DATABASE_URL")
+db_url = (
+    os.getenv("SYNC_DATABASE_URL")
+    or os.getenv("DATABASE_URL")
+)
+
 if not db_url:
     raise RuntimeError(
-        "Database URL is not configured. Set SYNC_DATABASE_URL (preferred for Alembic) "
-        "or DATABASE_URL."
+        "Database URL is not configured. "
+        "Set SYNC_DATABASE_URL or DATABASE_URL."
     )
 
-print("ALEMBIC USING:", db_url)
+# -----------------------------------
+# Convert async driver -> sync driver
+# Alembic must use psycopg2
+# -----------------------------------
+sync_db_url = (
+    db_url
+    .replace(
+        "postgresql+asyncpg://",
+        "postgresql+psycopg2://"
+    )
+    .replace(
+        "postgresql+psycopg://",
+        "postgresql+psycopg2://"
+    )
+)
+
+print("ALEMBIC USING:", sync_db_url)
 
 # Override alembic.ini URL
 config.set_main_option(
     "sqlalchemy.url",
-    db_url
+    sync_db_url
 )
 
 # -----------------------------------
@@ -58,7 +78,7 @@ target_metadata = Base.metadata
 def run_migrations_offline() -> None:
 
     context.configure(
-        url=db_url,
+        url=sync_db_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -74,7 +94,7 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
 
     connectable = create_engine(
-        db_url,
+        sync_db_url,
         poolclass=pool.NullPool,
     )
 
