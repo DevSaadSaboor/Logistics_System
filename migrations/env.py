@@ -29,7 +29,8 @@ db_url = (
     os.getenv("SYNC_DATABASE_URL")
     or os.getenv("DATABASE_URL")
 )
-
+print("SYNC_DATABASE_URL =", os.getenv("SYNC_DATABASE_URL"))
+print("DATABASE_URL =", os.getenv("DATABASE_URL"))
 if not db_url:
     raise RuntimeError(
         "Database URL is not configured. "
@@ -42,15 +43,9 @@ if not db_url:
 # -----------------------------------
 sync_db_url = (
     db_url
-    .replace(
-        "postgresql+asyncpg://",
-        "postgresql+psycopg2://"
-    )
-    .replace(
-        "postgresql+psycopg://",
-        "postgresql+psycopg2://"
-    )
+    .replace("postgresql://", "postgresql+psycopg2://")
 )
+
 
 print("ALEMBIC USING:", sync_db_url)
 

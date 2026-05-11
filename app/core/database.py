@@ -27,11 +27,10 @@ class Base(DeclarativeBase):
 DATABASE_URL = None
 
 if settings.DATABASE_URL:
-    DATABASE_URL = settings.DATABASE_URL.replace(
-        "postgresql://",
-        "postgresql+asyncpg://"
-    )
-
+    DATABASE_URL = (
+    settings.DATABASE_URL
+    .replace("postgresql://", "postgresql+asyncpg://")
+)
 
 # -----------------------------------
 # Engine + Session Factory
