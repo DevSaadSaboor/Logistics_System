@@ -1,5 +1,5 @@
 from langchain_openai import ChatOpenAI
-from app.modules.AI.rag_service import get_rag_answer
+from langchain_core.messages import HumanMessage, SystemMessage
 from app.modules.shipments.repository import ShipmentRespository
 from app.modules.AI.Langgraph.state import AgentState
 from app.modules.AI.rag_service import semantic_search
@@ -61,40 +61,39 @@ async def shipment_retriever_node(state:AgentState,db):
 
 async def policy_retrieve_node(state:AgentState,db):
     logger.info("ai.retreive.rag")
-    query = query.lower()
+    query = (state.get("question") or "").lower()
     if "delay" in query or "late" in query:
         query +=   "shipment delay reasons"
         docs = semantic_search(query)
         context = "\n\n".join([
-            doc["context"][:300]
+            doc["content"][:300]
             for doc in docs[:3]
         ])
         return {"context": context}
+    # Default: still retrieve something useful for general policy questions.
+    docs = semantic_search(query)
+    context = "\n\n".join([doc["content"][:300] for doc in docs[:3]])
+    return {"context": context or "No relevant policy context found."}
     
 
 async def generate_node(state:AgentState):
-    messages = state['messages']
-    messages.append({
-    "role": "system",
-    "content": """
-    You are a logistics AI assistant.
+    context = state.get("context") or ""
+    question = state.get("question") or ""
 
-    Use provided context to answer clearly.
+    messages = [
+        SystemMessage(
+            content=(
+                "You are a logistics AI assistant.\n\n"
+                "Use provided context to answer clearly.\n\n"
+                "If answer is not found, say:\n"
+                "'I don't know based on company data.'"
+            )
+        ),
+        HumanMessage(
+            content=f"Context:\n{context}\n\nQuestion:\n{question}\n"
+        ),
+    ]
 
-    If answer is not found, say:
-    'I don't know based on company data.'
-    """
-    })
-    messages.append({
-         "role": "user",
-         "content": f"""
-    Context:
-    {state['context']}
-    question:
-    {state['question']}
-    """
-    })
-    
     response = await llm.ainvoke(messages)
     logger.info("ai.answer.generated")
 

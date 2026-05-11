@@ -1,0 +1,19 @@
+# Render deployment configuration
+services:
+  - type: web
+    name: logistics-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SYNC_DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: APP_ENV
+        value: production
+      - key: DEBUG
+        value: "False"

@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock,MagicMock
 from datetime import datetime
 from app.modules.shipments.service import ShipmentsService
 from app.modules.shipments.enum import ShipmentStatus
-from fastapi import HTTPException
+from app.core.exceptions import ShipmentNotFoundError
 
 class TestShipmentsService(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
@@ -149,11 +149,8 @@ class TestShipmentsService(unittest.IsolatedAsyncioTestCase):
         self.service.repo.get_by_tracking_number.return_value = None
         
         # Execution and Assertion
-        with self.assertRaises(HTTPException) as context:
+        with self.assertRaises(ShipmentNotFoundError):
             await self.service.get_by_tracking_number("TRK-UNKNOWN")
-        
-        self.assertEqual(context.exception.status_code, 404)
-        self.assertEqual(context.exception.detail, "shipment not found")
 
 if __name__ == "__main__":
     unittest.main()

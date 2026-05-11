@@ -11,7 +11,9 @@ def build_graph(db):
     async def shipment_wrapper(state):
         return await shipment_retriever_node(state,db)
     builder.add_node("shipment_retrieve", shipment_wrapper)
-    builder.add_node("policy_retrieve", policy_retrieve_node)
+    async def policy_wrapper(state):
+        return await policy_retrieve_node(state, db)
+    builder.add_node("policy_retrieve", policy_wrapper)
 
     builder.add_node("generate", generate_node)
 
