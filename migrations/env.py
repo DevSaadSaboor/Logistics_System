@@ -28,7 +28,8 @@ config = context.config
 db_url = (
     os.getenv("SYNC_DATABASE_URL")
     or os.getenv("DATABASE_URL")
-)
+    or ""
+).strip()
 print("SYNC_DATABASE_URL =", os.getenv("SYNC_DATABASE_URL"))
 print("DATABASE_URL =", os.getenv("DATABASE_URL"))
 if not db_url:
@@ -41,10 +42,18 @@ if not db_url:
 # Convert async driver -> sync driver
 # Alembic must use psycopg2
 # -----------------------------------
-sync_db_url = (
-    db_url
-    .replace("postgresql://", "postgresql+psycopg2://")
-)
+def _alembic_sync_url(url: str) -> str:
+    u = url.strip()
+    if u.startswith("postgres://"):
+        u = "postgresql://" + u[len("postgres://") :]
+    if u.startswith("postgresql+asyncpg://"):
+        return "postgresql+psycopg2://" + u[len("postgresql+asyncpg://") :]
+    if u.startswith("postgresql://"):
+        return "postgresql+psycopg2://" + u[len("postgresql://") :]
+    return u
+
+
+sync_db_url = _alembic_sync_url(db_url)
 
 
 print("ALEMBIC USING:", sync_db_url)

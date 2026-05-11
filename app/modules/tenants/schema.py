@@ -1,13 +1,15 @@
-from pydantic import BaseModel
 import uuid
 
+from pydantic import BaseModel, ConfigDict, Field
+
+
 class TenantCreate(BaseModel):
-    name:str
+    name: str = Field(..., min_length=1, max_length=255)
 
 
 class TenantResponse(BaseModel):
-    id:uuid.UUID
-    name:str
+    model_config = ConfigDict(from_attributes=True)
 
-class Config:
-    from_attributes = True
+    id: uuid.UUID
+    name: str
+    slug: str

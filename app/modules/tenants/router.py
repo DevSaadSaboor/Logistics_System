@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
 from typing import List
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException
 # from app.core.database import get_db
 from .schema import TenantCreate,TenantResponse
 from .service import TenantService
@@ -38,17 +40,17 @@ async def create_tenant(
         )
         raise
 
-@router.get("/", response_model= List[TenantResponse])
+@router.get("/", response_model=List[TenantResponse])
 async def list_tenants(
     current_user=Depends(require_roles(UserRole.ADMIN)),
-    service: TenantService = Depends(get_auth_service)
+    service: TenantService = Depends(get_auth_service),
 ):
-    tenant = await service.list_tenants()
-    return tenant
+    tenants = await service.list_tenants()
+    return tenants
 
 @router.delete("/{tenant_id}", response_model=TenantResponse)
 async def delete_tenant(
-    tenant_id:str,
+    tenant_id: UUID,
     current_user=Depends(require_roles(UserRole.ADMIN)),
     service: TenantService = Depends(get_auth_service)
 ):

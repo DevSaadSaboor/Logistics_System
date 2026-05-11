@@ -24,13 +24,21 @@ class Base(DeclarativeBase):
 # Convert sync PostgreSQL URL
 # to asyncpg URL for async SQLAlchemy
 # -----------------------------------
+def _async_sqlalchemy_url(raw: str) -> str:
+    u = raw.strip()
+    if u.startswith("postgres://"):
+        u = "postgresql://" + u[len("postgres://") :]
+    if u.startswith("postgresql+asyncpg://"):
+        return u
+    if u.startswith("postgresql://"):
+        return "postgresql+asyncpg://" + u[len("postgresql://") :]
+    return u
+
+
 DATABASE_URL = None
 
 if settings.DATABASE_URL:
-    DATABASE_URL = (
-    settings.DATABASE_URL
-    .replace("postgresql://", "postgresql+asyncpg://")
-)
+    DATABASE_URL = _async_sqlalchemy_url(settings.DATABASE_URL)
 
 # -----------------------------------
 # Engine + Session Factory
