@@ -1,5 +1,6 @@
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+
 from app.modules.tenants.models import Tenant
 
 class TenantRepository:
@@ -40,4 +41,12 @@ class TenantRepository:
             )
         )
         return result.scalars().first()
+
+     async def count_active(self) -> int:
+        result = await self.db.execute(
+            select(func.count())
+            .select_from(Tenant)
+            .where(Tenant.deleted_at.is_(None))
+        )
+        return int(result.scalar_one())
     

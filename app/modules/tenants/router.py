@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 # from app.core.database import get_db
 from .schema import TenantCreate,TenantResponse
 from .service import TenantService
-from .dependencies import get_auth_service
+from .dependencies import get_auth_service, require_create_tenant_actor
 from app.core.dependencies import require_roles
 from app.modules.users.models import UserRole
 from app.core.logging import logger
@@ -15,11 +15,11 @@ router = APIRouter(prefix="/tenants", tags=["Tenants"])
 
 # service = TenantService()
 
-@router.post("/", response_model= TenantResponse )
+@router.post("/", response_model=TenantResponse)
 async def create_tenant(
-    payload:TenantCreate,
-    current_user=Depends(require_roles(UserRole.ADMIN)),
-    service: TenantService = Depends(get_auth_service)
+    payload: TenantCreate,
+    current_user=Depends(require_create_tenant_actor),
+    service: TenantService = Depends(get_auth_service),
 ):
     try:
         tenant = await service.create_tenant(payload.name)
