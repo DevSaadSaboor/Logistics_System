@@ -1,4 +1,8 @@
 # Render deployment configuration
+databases:
+  - name: logistics-db
+    plan: free
+
 services:
   - type: web
     name: logistics-backend
@@ -6,9 +10,13 @@ services:
     dockerfilePath: ./Dockerfile
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: logistics-db
+          property: connectionString
       - key: SYNC_DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: logistics-db
+          property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: OPENAI_API_KEY
