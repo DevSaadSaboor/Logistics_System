@@ -23,14 +23,9 @@ from app.modules.shipments.models import (
 config = context.config
 
 # -----------------------------------
-# Read DB URL from environment
+# Read database URL from Render env
 # -----------------------------------
-db_url = os.getenv("SYNC_DATABASE_URL") or os.getenv("DATABASE_URL")
-if not db_url:
-    raise RuntimeError(
-        "Database URL is not configured. Set SYNC_DATABASE_URL (preferred for Alembic) "
-        "or DATABASE_URL."
-    )
+db_url = os.environ["SYNC_DATABASE_URL"]
 
 print("ALEMBIC USING:", db_url)
 

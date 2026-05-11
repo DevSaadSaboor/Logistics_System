@@ -27,7 +27,11 @@ class Base(DeclarativeBase):
 DATABASE_URL = None
 
 if settings.DATABASE_URL:
-    DATABASE_URL = settings.DATABASE_URL.replace(
+    url = settings.DATABASE_URL
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    
+    DATABASE_URL = url.replace(
         "postgresql://",
         "postgresql+asyncpg://"
     )
