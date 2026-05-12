@@ -1,7 +1,16 @@
-from .models import Shipments,Shipment_Staus_log
+from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select,update,text
 from sqlalchemy.sql import func
+
+from .enum import ShipmentStatus
+from .models import Shipment_Staus_log, Shipments
+
+
+def _coerce_shipment_status(status) -> ShipmentStatus:
+    if isinstance(status, ShipmentStatus):
+        return status
+    return ShipmentStatus(status)
+
 
 class ShipmentRespository:
     def __init__(self,db:AsyncSession):
@@ -12,7 +21,7 @@ class ShipmentRespository:
         shipment = Shipments(
             tenant_id=tenant_id,
             tracking_number=tracking_number,
-            status=status.value if hasattr(status, "value") else status,
+            status=_coerce_shipment_status(status),
             origin=origin,
             destination=destination,
             weight=weight,
@@ -100,12 +109,12 @@ class StatusLogRepostiry:
     def __init__(self,db:AsyncSession):
         self.db = db
     
-    async def create_status_log(self,shipment_id,status,location, user_id):
+    async def create_status_log(self, shipment_id, status, location, user_id):
        log = Shipment_Staus_log(
-           shipment_id = shipment_id,
-           updated_by_user_id= user_id,
-           status=status.value if hasattr(status, "value") else status,
-           location = location
+           shipment_id=shipment_id,
+           updated_by_user_id=user_id,
+           status=_coerce_shipment_status(status),
+           location=location,
        )
        self.db.add(log)
        return log

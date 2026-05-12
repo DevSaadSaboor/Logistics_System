@@ -5,14 +5,14 @@ from .enum import ShipmentStatus
 
 
 class ShipmentCreate(BaseModel):
-    origin: str
-    destination: str
-    recipient_name: str
-    recipient_phone : str
-    weight : float
-    delivery_address: str
+    origin: str = Field(..., max_length=255)
+    destination: str = Field(..., max_length=255)
+    recipient_name: str = Field(..., max_length=255)
+    recipient_phone: str = Field(..., max_length=50)
+    weight: float
+    delivery_address: str = Field(..., max_length=255)
     delivery_date: datetime | None = None
-    description: str
+    description: str = Field(..., max_length=255)
     pickup_date: datetime
     @field_validator("weight")
     @classmethod
@@ -57,6 +57,8 @@ class UpdateShipmentStatus(BaseModel):
 
 
 class ShipmentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
     id: uuid.UUID
     tracking_number: str
     status: str
@@ -69,12 +71,18 @@ class ShipmentResponse(BaseModel):
     description: str
     pickup_date: datetime
     delivery_date: datetime = Field(
-        validation_alias=AliasChoices("delivery_date", "expected_delivery_date")
+        validation_alias=AliasChoices("delivery_date", "expected_delivery_date"),
+        serialization_alias="delivery_date",
     )
     category: str
     confidence: float
 
-    model_config = ConfigDict(from_attributes=True)
+    @field_validator("status", mode="before")
+    @classmethod
+    def _status_to_str(cls, v):
+        if hasattr(v, "value"):
+            return v.value
+        return v
 
 
 class SimilarShipmentResponse(BaseModel):

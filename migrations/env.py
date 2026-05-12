@@ -9,6 +9,7 @@ from alembic import context
 
 from app.core.database import Base
 
+from app.modules.audit.model import AuditLog
 from app.modules.tenants.models import Tenant
 from app.modules.users.models import User
 from app.modules.auth.models import RefreshToken
