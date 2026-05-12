@@ -1,4 +1,4 @@
-from typing import TypedDict,Optional,List
+from typing import TypedDict,Optional
 
 
 class AgentState(TypedDict):

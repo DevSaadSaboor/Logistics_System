@@ -5,6 +5,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_tenant, require_tenant_roles
 from app.core.logging import logger
 from app.modules.users.models import UserRole
+from app.modules.audit.service import AuditService
 from app.modules.shipments.ai_service import ShipmentAiService
 from .schema import (
     ShipmentCreate,
@@ -84,6 +85,19 @@ async def create_shipment(
         shipment.id,
         tenant.id,
         payload.description,
+    )
+    
+    await AuditService(db).log(
+        action="shipment.created",
+        resource_type="shipment",
+        resource_id=str(shipment.id),
+        user_id=str(user.id),
+        tenant_id=str(tenant.id),
+        metadata_json={
+            "tracking_number": shipment.tracking_number,
+            "origin": shipment.origin,
+            "destination": shipment.destination,
+        },
     )
 
     logger.info(
