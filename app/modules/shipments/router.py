@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi import APIRouter, Depends, BackgroundTasks,Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.dependencies import get_current_tenant, require_tenant_roles
@@ -52,6 +52,7 @@ async def update_shipment(
 
 @router.post("/", response_model=ShipmentResponse)
 async def create_shipment(
+    request:Request,
     payload: ShipmentCreate,
     background_tasks: BackgroundTasks,
     tenant=Depends(get_current_tenant),
@@ -93,6 +94,8 @@ async def create_shipment(
         resource_id=str(shipment.id),
         user_id=str(user.id),
         tenant_id=str(tenant.id),
+        ip_address = request.client.host,
+        user_agent = request.headers.get("User-Agent"),
         metadata_json={
             "tracking_number": shipment.tracking_number,
             "origin": shipment.origin,

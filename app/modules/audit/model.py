@@ -35,11 +35,11 @@ class AuditLog(Base):
     )
     ip_address : Mapped[str] = MappedColumn (
         String,
-        nullable = False
+        nullable = True
     )
     user_agent : Mapped[str]  = MappedColumn (
         String,
-        nullable = False
+        nullable = True
     )
     metadata_json : Mapped[dict | None] = MappedColumn (
         JSON,

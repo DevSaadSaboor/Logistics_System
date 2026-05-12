@@ -38,16 +38,16 @@ def ensure_vector_store_initialized():
 
     existing_docs = vector_store.similarity_search("policy", k=1)
     if existing_docs:
-        print("Vector store already initialized.")
+        # print("Vector store already initialized.")
         return
 
     documents = load_documents()
     if not documents:
-        print("No documents found to ingest.")
+        # print("No documents found to ingest.")
         return
 
     vector_store.add_documents(documents)
-    print(f"Vector store initialized with {len(documents)} chunks.")
+    # print(f"Vector store initialized with {len(documents)} chunks.")
 
 # if __name__ == "__main__":
 #     create_vector_store()

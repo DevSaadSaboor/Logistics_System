@@ -37,23 +37,23 @@ class ShipmentAiService:
         print("AI SERVICE TRIGGERED")
         categorizer = ShipmentCategorizer()
         try:
-            print("➡️ Running categorizer...")
+            # print("➡️ Running categorizer...")
             result = await asyncio.to_thread(categorizer.categorize, description)
             category = result.category
             confidence = result.confidence
-            print("➡️ Generating embedding...")
+            # print("➡️ Generating embedding...")
             embedding = self.generate_embedding(description)
             emb_len = len(embedding) if embedding is not None else None
-            print("Embedding:", type(embedding), emb_len)
-            if embedding is not None:
-                print("✅ Embedding length:", emb_len)
+            # print("Embedding:", type(embedding), emb_len)
+            # if embedding is not None:
+                # print("✅ Embedding length:", emb_len)
         except Exception as e :
             print("❌ AI ERROR:", e)
             category = "other"
             confidence = 0.0
             embedding = None
-            print("➡️ Saving to DB...")
+            # print("➡️ Saving to DB...")
 
         await self.repo.update_ai_categorization(shipment_id, tenant_id, category, confidence, embedding)
         await self.db.commit()
-        print("✅ AI PROCESS COMPLETE")
+        # print("✅ AI PROCESS COMPLETE")
