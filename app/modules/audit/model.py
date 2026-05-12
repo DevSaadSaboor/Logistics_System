@@ -46,6 +46,6 @@ class AuditLog(Base):
         nullable = True
     )
     created_at: Mapped[datetime] = MappedColumn (
-        DateTime,
+        DateTime(timezone=True),
         default = datetime.now(timezone.utc)
     )
