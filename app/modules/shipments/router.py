@@ -89,7 +89,7 @@ async def create_shipment(
     
     await AuditService(db).log(
         action="shipment.created",
-        resources_type="shipment",
+        resource_type="shipment",
         resource_id=str(shipment.id),
         user_id=str(user.id),
         tenant_id=str(tenant.id),
