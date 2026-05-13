@@ -71,10 +71,10 @@ class ShipmentRespository:
         await self.db.execute(result)
 
     async def get_by_id_for_update(self,shipment_id,tenant_id):
-        result = await self.db.execute (select(Shipments).where(Shipments.id == shipment_id)
-        .where(Shipments.tenant_id == tenant_id).with_for_update())
-
-        return result.scalars().first()
+            result = await self.db.execute (select(Shipments).where(Shipments.id == shipment_id)
+            .where(Shipments.tenant_id == tenant_id).with_for_update())
+            shipment  = result.scalar_one_or_none()
+            return shipment
 
     async def get_similar_shipment(self, shipment_id, tenant_id,min_similarity,limit,offset):
 

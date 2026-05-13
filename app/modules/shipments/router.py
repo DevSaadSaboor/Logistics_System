@@ -17,8 +17,9 @@ from .service import ShipmentsService
 
 router = APIRouter(prefix="/shipments", tags=["Shipments"])
 
-@router.patch("/{shipment_id}/status")
+@router.patch("/{shipment_id}/status", response_model=ShipmentResponse)
 async def update_shipment(
+    request: Request,
     shipment_id: UUID,
     payload: UpdateShipmentStatus,
     tenant=Depends(get_current_tenant),
@@ -32,12 +33,34 @@ async def update_shipment(
 ):
     service = ShipmentsService(db)
 
-    shipment = await service.update_status(
+    shipment = await service.get_shipment_by_id(
         shipment_id=shipment_id,
         tenant_id=tenant.id,
-        new_status=payload.status,
-        user_id=user.id,
     )
+    old_status = shipment.status
+
+    shipment = await service.update_status(
+    shipment_id=shipment_id,
+    tenant_id=tenant.id,
+    new_status=payload.status,
+    user_id=user.id,
+    )
+
+    await AuditService(db).log(
+    action="shipment.status_updated",
+    resource_type="shipment",
+    resource_id=str(shipment.id),
+    user_id=str(user.id),
+    tenant_id=str(tenant.id),
+    ip_address=request.client.host,
+    user_agent=request.headers.get("User-Agent"),
+    
+    metadata_json={
+        "tracking_number": shipment.tracking_number,
+        "old_status": str(old_status),
+        "new_status": str(shipment.status),
+    },
+)
 
     logger.info(
         "shipment.status.updated shipment_id=%s tenant_id=%s user_id=%s new_status=%s",

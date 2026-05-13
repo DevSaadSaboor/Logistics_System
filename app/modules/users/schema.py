@@ -1,8 +1,22 @@
 from pydantic import BaseModel, EmailStr, Field
+from uuid import UUID
 from typing import Annotated
 from app.modules.users.models import UserRole
 
 PasswordStr = Annotated[str, Field(min_length=8, max_length=72)]
+
+
+class UserloginRequest(BaseModel):
+    id:UUID
+    email:str
+    tenant_id:UUID
+    role:str
+
+class LoginResponse(BaseModel):
+    access_token:str
+    refresh_token:str
+    token_type:str = "bearer"
+    user:UserloginRequest
 
 class LoginRequest(BaseModel):
     email: EmailStr

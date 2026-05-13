@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, Header
-
-from app.modules.users.schema import LoginRequest, RegisterRequest
+from fastapi import APIRouter, Depends, Header,Request
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.database import get_db
+from app.modules.users.schema import LoginRequest, RegisterRequest,LoginResponse
 from app.modules.users.service import UserService
 from .dependencies import get_auth_service
+from app.modules.audit.service import AuditService
 from app.core.logging import logger
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -32,7 +34,9 @@ async def register(
 
 @router.post("/login")
 async def login(
+    request:Request,
     payload: LoginRequest,
+    db: AsyncSession = Depends(get_db),
     tenant_slug: str = Header(..., alias="X-Tenant-Slug"),
     service: UserService = Depends(get_auth_service),
 ):
@@ -40,6 +44,28 @@ async def login(
         tenant_slug=tenant_slug,
         email=payload.email,
         password=payload.password,
+    )
+
+    await AuditService(db).log(
+
+        action="user.login",
+
+        resource_type="user",
+
+        resource_id=str(result["user"]["id"]),
+
+        user_id=result["user"]["id"],
+
+        tenant_id=result["user"]["tenant_id"],
+
+        ip_address=request.client.host,
+
+        user_agent=request.headers.get("User-Agent"),
+
+        metadata_json={
+            "email": payload.email,
+            "tenant_slug": tenant_slug,
+        },
     )
 
     logger.info(

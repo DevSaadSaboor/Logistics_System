@@ -29,7 +29,10 @@ class ShipmentsService():
         if not shipment:
             raise ShipmentNotFoundError()
         current_status = shipment.status
-        new_status.value if hasattr(new_status,"value") else new_status
+        new_status = (new_status.value
+        if hasattr(new_status, "value")
+        else new_status
+    )
 
         if current_status == new_status:
             logger.warning(
@@ -57,6 +60,8 @@ class ShipmentsService():
             user_id
         )
         await self.db.commit()
+        await self.db.refresh(shipment)
+
         return shipment
 
     
@@ -178,6 +183,15 @@ class ShipmentsService():
                 for log in logs
             ]
         }
+    
+    async def get_shipment_by_id(self,shipment_id, tenant_id):
+        shipment = await self.repo.get_by_id_for_update(shipment_id=shipment_id,tenant_id=tenant_id)
+        if not shipment:
+            logger.warning("shipment not found")
+        return shipment
+
+    
+   
         
 
     
