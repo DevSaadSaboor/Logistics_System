@@ -13,6 +13,7 @@ from app.modules.audit.model import AuditLog
 from app.modules.tenants.models import Tenant
 from app.modules.users.models import User
 from app.modules.auth.models import RefreshToken
+from app.modules.consent.model import Consent
 from app.modules.shipments.models import (
     ShipmentStatus,
     Shipment_Staus_log,

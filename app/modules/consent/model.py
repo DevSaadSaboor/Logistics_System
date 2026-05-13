@@ -1,45 +1,53 @@
-# from sqlalchemy import String,ForeignKey,JSON,Integer,DateTime,Boolean
-# from sqlalchemy.orm import Mapped,MappedColumn
-# from datetime import datetime,timezone
-# from app.core.database import Base
+from datetime import datetime
+from datetime import timezone
+
+from uuid import uuid4
+
+from sqlalchemy import String
+from sqlalchemy import DateTime
+from sqlalchemy import Boolean
+from sqlalchemy import ForeignKey
+
+from sqlalchemy.dialects.postgresql import UUID
+
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+
+from app.core.database import Base
 
 
-# class ConsentRecord(Base):
-#     __tablename__ = "consent_records"
+class Consent(Base):
 
-#     id : Mapped[int] = MappedColumn (
-#         Integer,
-#         primary_key = True,
-#         index = True
-#     )
-#     user_id : Mapped[int]  = MappedColumn (
-#         ForeignKey("users.id"),
-#     )
-#     tenant_id : Mapped[int | None] = MappedColumn (
-#         ForeignKey("tenants.id"),
-#         nullable = True
-#     )
-#     consent_type :Mapped[str] = MappedColumn (
-#         String,
-#         nullable = False
-#     )
-#     accepted : Mapped[bool] = MappedColumn (
-#         Boolean,
-#         default = True
-#     )
-#     version : Mapped[str]  = MappedColumn (
-#         String,
-#         default = "v1"
-#     )
-#     ip_address: Mapped[str] = MappedColumn (
-#         String,
-#         nullable = True
-#     )
-#     accepted_at: Mapped[datetime] = MappedColumn (
-#         DateTime,
-#         default = datetime.now(timezone.utc)
-#     )
-#     revoked_at : Mapped[datetime] = MappedColumn (
-#         DateTime,
-#         nullable = True
-#     )
+    __tablename__ = "consents"
+
+    id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid4,
+    )
+
+    user_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id"),
+        nullable=False,
+    )
+
+    consent_type: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+    )
+
+    granted: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+    )
+
+    granted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+    revoked_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
