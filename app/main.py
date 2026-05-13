@@ -8,6 +8,7 @@ from app.modules.users.router import router as auth_router
 from app.modules.auth.router import router as current_user
 from app.modules.shipments.router import router as shipment_router
 from app.modules.AI.router import router as ai_router
+from app.modules.gdpr.router import router as gdpr_router
 
 from app.core.exceptions import (
     generic_exception_handler,
@@ -81,6 +82,7 @@ app.include_router(auth_router)
 app.include_router(current_user)
 app.include_router(shipment_router)
 app.include_router(ai_router)
+app.include_router(gdpr_router)
 
 
 # ---------- Startup ----------
