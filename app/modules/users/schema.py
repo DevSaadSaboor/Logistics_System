@@ -12,11 +12,11 @@ class UserloginRequest(BaseModel):
     tenant_id:UUID
     role:str
 
-class LoginResponse(BaseModel):
-    access_token:str
-    refresh_token:str
-    token_type:str = "bearer"
-    user:UserloginRequest
+# class LoginResponse(BaseModel):
+#     access_token:str
+#     refresh_token:str
+#     token_type:str = "bearer"
+#     user:UserloginRequest
 
 class LoginRequest(BaseModel):
     email: EmailStr

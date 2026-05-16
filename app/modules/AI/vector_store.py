@@ -28,6 +28,7 @@ def create_vector_store():
 
 
 def ensure_vector_store_initialized():
+    pass
     embedding = OpenAIEmbeddings(model="text-embedding-3-small")
     vector_store = PGVector(
         connection_string=CONNECTION_STRING,

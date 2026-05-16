@@ -43,7 +43,7 @@ class ShipmentAiService:
             confidence = result.confidence
             # print("➡️ Generating embedding...")
             embedding = self.generate_embedding(description)
-            emb_len = len(embedding) if embedding is not None else None
+            # emb_len = len(embedding) if embedding is not None else None
             # print("Embedding:", type(embedding), emb_len)
             # if embedding is not None:
                 # print("✅ Embedding length:", emb_len)

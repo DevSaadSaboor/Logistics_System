@@ -3,7 +3,6 @@ from sqlalchemy import delete, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.modules.users.models import User
 from app.modules.auth.models import RefreshToken
-from app.modules.AI.model import ChatHistory
 from app.modules.audit.model import AuditLog
 
 
