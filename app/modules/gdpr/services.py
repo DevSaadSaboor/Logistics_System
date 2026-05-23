@@ -34,3 +34,17 @@ class GDPRService:
         return {
             "message": "User data erased successfully"
         }
+    
+    async def export_user_data(self,user_id):
+        user = await self.repo.get_user_data(user_id=user_id,)
+        shipment = await self.repo.get_user_shipment(user_id=user_id)
+        consent  = await self.repo.get_user_consents(user_id=user_id)
+        auditlog = await self.repo.get_user_audit_log(user_id=user_id)
+
+        return {
+            "user": user,
+            "shipment": shipment,
+            "consent": consent,
+            "auditlog": auditlog
+        }
+    

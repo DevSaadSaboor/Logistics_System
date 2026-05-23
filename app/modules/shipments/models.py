@@ -114,7 +114,12 @@ class Shipments(Base):
     embedding: Mapped[list[float]] = mapped_column(
     Vector(1536),
     nullable=True
-)
+    )
+    created_by : Mapped[uuid.UUID] = mapped_column(
+    UUID(as_uuid=True),
+    ForeignKey("users.id"),
+    nullable=False
+    )
 
 
 

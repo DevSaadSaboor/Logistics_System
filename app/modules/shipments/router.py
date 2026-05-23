@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import APIRouter, Depends, BackgroundTasks,Request
+from fastapi import APIRouter, Depends, BackgroundTasks,Request,HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.dependencies import get_current_tenant, require_tenant_roles
@@ -14,6 +14,7 @@ from .schema import (
     SimilarShipmentResponse,
 )
 from .service import ShipmentsService
+from app.modules.consent.service import ConsentService
 
 router = APIRouter(prefix="/shipments", tags=["Shipments"])
 
@@ -102,15 +103,23 @@ async def create_shipment(
         user_id=user.id,
     )
 
-    ai_service = ShipmentAiService(db)
-
-    background_tasks.add_task(
+    
+    consent_service = ConsentService(db)
+    has_ai_consent = await consent_service.verify_ai_consent(user_id=user.id)
+    if  has_ai_consent:
+         ai_service = ShipmentAiService(db)
+         background_tasks.add_task(
         ai_service.categorizer_and_update_shipment,
         shipment.id,
         tenant.id,
         payload.description,
+        )
+    else:
+        logger.warning(
+        "ai.processing.denied missing_consent user_id=%s",
+        user.id,
     )
-    
+
     await AuditService(db).log(
         action="shipment.created",
         resource_type="shipment",
@@ -150,8 +159,22 @@ async def categorize_shipment(
     db: AsyncSession = Depends(get_db),
 ):
     service = ShipmentsService(db)
+    consent_service = ConsentService(db)
+    has_ai_consent = await consent_service.verify_ai_consent(
+    user_id=user.id
+    )
+    if not has_ai_consent:
 
-    shipment = await service.get_tenant_shipment_or_raise(
+        logger.warning(
+        "ai.processing.denied missing_consent user_id=%s",
+        user.id,
+    )
+        raise HTTPException(
+        status_code=403,
+        detail="AI processing consent required",
+    )
+
+    shipment = await service.get_shipment_by_id(
         shipment_id=shipment_id,
         tenant_id=tenant.id,
     )

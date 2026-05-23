@@ -20,3 +20,20 @@ async def erase_user_data(user_id:UUID,current_user = Depends(get_current_tenant
     result = await service.erase_user_data(user_id = user_id, performed_by=current_user.id,)
 
     return result
+
+
+@router.get("/export")
+async def export_my_data(
+
+    current_user=Depends(
+        get_current_tenant_user
+    ),
+
+    db: AsyncSession = Depends(get_db),
+):
+
+    service = GDPRService(db)
+
+    return await service.export_user_data(
+        user_id=current_user.id,
+    )

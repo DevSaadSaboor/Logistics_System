@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.modules.consent.repo import ConsentRepository
 from app.modules.consent.model import Consent
 from app.modules.audit.service import AuditService
+from sqlalchemy import Select,desc
 
 
 class ConsentService():
@@ -64,4 +65,21 @@ class ConsentService():
         return {
             "message": "Consent revoked successfully"
         }
+    
+
+    
+    async def verify_ai_consent(self,user_id):
+        result = await self.db.execute(Select(Consent).where(Consent.user_id == user_id).where(Consent.consent_type == "AI_PROCESSING")
+        .order_by(desc(Consent.granted_at)))
+
+        consent = result.scalars().first()
+
+        return (
+            consent is not None
+            and consent.granted is True
+            and consent.revoked_at is None
+        )
+    
+    
+
         

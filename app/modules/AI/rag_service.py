@@ -9,7 +9,7 @@ load_dotenv(override=True)
 
 CONNECTION_STRING = os.getenv("SYNC_DATABASE_URL")
 
-def get_rag_answer(question:str):
+async def get_rag_answer(question:str):
     embedding = OpenAIEmbeddings(model = "text-embedding-3-small")
     vector_store = PGVector(
     connection_string=CONNECTION_STRING,
@@ -18,7 +18,7 @@ def get_rag_answer(question:str):
     use_jsonb=True
     )
     retriever = vector_store.as_retriever(search_kwargs = {"k" : 3})
-    docs = retriever.invoke(question)
+    docs = await retriever.ainvoke(question)
     print("DOC COUNT:", len(docs))
     for doc in docs:
         print("DOC:", doc.page_content)
@@ -46,7 +46,7 @@ def get_rag_answer(question:str):
     """)
 
     chain = prompt | model
-    response = chain.invoke(
+    response = await chain.ainvoke(
         {
         "context":context,
         "question": question
@@ -57,7 +57,7 @@ def get_rag_answer(question:str):
         "answer": response.content,
         "sources": list(set(sources))
     }
-def semantic_search(query: str):
+async def semantic_search(query: str):
 
     vector_store = create_vector_store()
 
@@ -65,7 +65,7 @@ def semantic_search(query: str):
         search_type = "mmr",
         search_kwargs={"k": 5,"fetch_k":10})
 
-    docs = retriever.invoke(query)
+    docs = await retriever.ainvoke(query)
 
     results = []
 

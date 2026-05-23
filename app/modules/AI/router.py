@@ -21,12 +21,12 @@ class SearchRequest(BaseModel):
 
 @router.post("/ask")
 async def ask(payload: QuestionRequest):
-    return get_rag_answer(payload.question)
+    return await get_rag_answer(payload.question)
 
 
 @router.post("/search")
 async def search(payload: SearchRequest):
-    return semantic_search(payload.query)
+    return await semantic_search(payload.query)
 
 @router.post("/assistant", response_model=AssistantResponse)
 async def assistant(payload:AssistantRequest , db:AsyncSession = Depends(get_db)):

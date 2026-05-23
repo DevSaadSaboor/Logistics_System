@@ -2,14 +2,14 @@ import asyncio
 import os
 from uuid import UUID
 
-from openai import OpenAI
+from openai import AsyncOpenAI
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.AI.categorizer import ShipmentCategorizer
 from app.modules.shipments.repository import ShipmentRespository
 
 _api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=_api_key) if _api_key else None
+client = AsyncOpenAI(api_key=_api_key) if _api_key else None
 
 
 class ShipmentAiService:
@@ -17,13 +17,13 @@ class ShipmentAiService:
         self.db = db
         self.repo = ShipmentRespository(db)
         api_key = os.getenv("OPENAI_API_KEY")   
-        self.client = OpenAI(api_key=api_key) if api_key else None
+        self.client = AsyncOpenAI(api_key=api_key) if api_key else None
 
-    def generate_embedding(self, text: str):
+    async def generate_embedding(self, text: str):
         if client is None:
             return None
         try:
-            response = client.embeddings.create(
+            response = await client.embeddings.create(
                 model="text-embedding-3-small",
                 input=text,
             )
@@ -42,11 +42,8 @@ class ShipmentAiService:
             category = result.category
             confidence = result.confidence
             # print("➡️ Generating embedding...")
-            embedding = self.generate_embedding(description)
-            # emb_len = len(embedding) if embedding is not None else None
-            # print("Embedding:", type(embedding), emb_len)
-            # if embedding is not None:
-                # print("✅ Embedding length:", emb_len)
+            embedding = await self.generate_embedding(description)
+    
         except Exception as e :
             print("❌ AI ERROR:", e)
             category = "other"
