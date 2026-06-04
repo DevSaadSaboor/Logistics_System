@@ -1,4 +1,4 @@
-"""Tenant bootstrap auth: no bearer until at least one user exists."""
+"""Tenant bootstrap auth: POST /tenants/ without bearer only when no tenants exist."""
 
 from __future__ import annotations
 
@@ -8,24 +8,18 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    "tenant_count,user_count,expected_status",
+    "tenant_count,expected_status",
     [
-        (0, 0, 200),
-        (1, 0, 200),
-        (1, 2, 401),
+        (0, 200),
+        (1, 401),
     ],
 )
-def test_create_tenant_bootstrap_auth(app_client, tenant_count, user_count, expected_status):
+def test_create_tenant_bootstrap_auth(app_client, tenant_count, expected_status):
     with (
         patch(
             "app.modules.tenants.repository.TenantRepository.count_active",
             new_callable=AsyncMock,
             return_value=tenant_count,
-        ),
-        patch(
-            "app.modules.users.respository.UserRepository.count_active",
-            new_callable=AsyncMock,
-            return_value=user_count,
         ),
         patch(
             "app.modules.tenants.service.TenantService.create_tenant",
@@ -45,32 +39,13 @@ def test_create_tenant_bootstrap_auth(app_client, tenant_count, user_count, expe
         assert "Bearer token required" in r.json()["error"]
 
 
-@pytest.mark.parametrize(
-    "tenant_count,user_count,expected_status",
-    [
-        (0, 0, 200),
-        (1, 0, 200),
-        (1, 2, 401),
-    ],
-)
-def test_list_tenants_bootstrap_auth(app_client, tenant_count, user_count, expected_status):
-    with (
-        patch(
-            "app.modules.tenants.repository.TenantRepository.count_active",
-            new_callable=AsyncMock,
-            return_value=tenant_count,
-        ),
-        patch(
-            "app.modules.users.respository.UserRepository.count_active",
-            new_callable=AsyncMock,
-            return_value=user_count,
-        ),
-        patch(
-            "app.modules.tenants.service.TenantService.list_tenants",
-            new_callable=AsyncMock,
-            return_value=[],
-        ),
+def test_list_tenants_no_auth_required(app_client):
+    """GET /tenants/ is public (slug needed for register); no bearer token."""
+    with patch(
+        "app.modules.tenants.service.TenantService.list_tenants",
+        new_callable=AsyncMock,
+        return_value=[],
     ):
         r = app_client.get("/tenants/")
 
-    assert r.status_code == expected_status
+    assert r.status_code == 200
