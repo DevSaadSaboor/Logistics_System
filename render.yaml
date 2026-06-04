@@ -1,22 +1,14 @@
 # Render deployment configuration
-databases:
-  - name: logistics-db
-    plan: free
+# Set DATABASE_URL + SYNC_DATABASE_URL in the dashboard when using Supabase.
+# SYNC_DATABASE_URL must be a sync URL (postgresql:// or postgresql+psycopg2://) for Alembic.
 
 services:
   - type: web
     name: logistics-backend
     runtime: docker
     dockerfilePath: ./Dockerfile
+    healthCheckPath: /
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: logistics-db
-          property: connectionString
-      - key: SYNC_DATABASE_URL
-        fromDatabase:
-          name: logistics-db
-          property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: OPENAI_API_KEY
@@ -25,3 +17,6 @@ services:
         value: production
       - key: DEBUG
         value: "False"
+      # Optional: set to true once to ingest RAG docs (slow); leave false for fast boots.
+      - key: INIT_VECTOR_STORE
+        value: "false"

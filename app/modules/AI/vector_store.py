@@ -28,7 +28,16 @@ def create_vector_store():
 
 
 def ensure_vector_store_initialized():
-    pass
+    """Ingest RAG docs when enabled. Skipped in production unless INIT_VECTOR_STORE=true."""
+    app_env = os.getenv("APP_ENV", "").strip().lower()
+    init_flag = os.getenv("INIT_VECTOR_STORE", "").strip().lower()
+    if app_env == "production" and init_flag not in ("1", "true", "yes"):
+        return
+    if not os.getenv("OPENAI_API_KEY", "").strip():
+        return
+    if not CONNECTION_STRING:
+        return
+
     embedding = OpenAIEmbeddings(model="text-embedding-3-small")
     vector_store = PGVector(
         connection_string=CONNECTION_STRING,

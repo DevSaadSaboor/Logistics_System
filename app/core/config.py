@@ -28,14 +28,24 @@ class Settings(BaseSettings):
     SECRET_KEY: str
 
     # -----------------------------------
-    # OpenAI
+    # OpenAI (optional — AI routes degrade gracefully without it)
     # -----------------------------------
-    OPENAI_API_KEY: str
+    OPENAI_API_KEY: str | None = None
+
+    # -----------------------------------
+    # App
+    # -----------------------------------
+    APP_ENV: str = "development"
+    DEBUG: bool = False
 
     # -----------------------------------
     # JWT
     # -----------------------------------
     REFRESH_TOKEN_EXPIRE_DELTA: timedelta = timedelta(days=7)
+
+    @property
+    def is_production(self) -> bool:
+        return self.APP_ENV.strip().lower() == "production"
 
     class Config:
         env_file = ".env"

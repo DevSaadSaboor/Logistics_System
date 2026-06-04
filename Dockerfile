@@ -19,5 +19,7 @@ COPY . .
 # Expose port
 EXPOSE 8000
 
-# Run migrations then start the server
-CMD alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+RUN chmod +x scripts/start.sh
+
+# Render sets PORT; bind 0.0.0.0 so the port scan succeeds.
+CMD ["sh", "scripts/start.sh"]

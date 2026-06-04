@@ -1,7 +1,11 @@
+import os
+
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from app.core.database import engine, Base
+
+from app.core.config import settings
+from app.core.database import Base, engine
 from app.modules.AI.vector_store import ensure_vector_store_initialized
 from app.modules.tenants.router import router as tenant_router
 from app.modules.users.router import router as auth_router
@@ -90,11 +94,16 @@ app.include_router(consent_router)
 # ---------- Startup ----------
 @app.on_event("startup")
 async def startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Schema is managed by Alembic in production; create_all is for local dev only.
+    if not settings.is_production and engine is not None:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
-    ensure_vector_store_initialized()
-    logger.info("Application started successfully")
+    # RAG ingestion can block for minutes; run manually or set INIT_VECTOR_STORE=true.
+    if os.getenv("INIT_VECTOR_STORE", "").strip().lower() in ("1", "true", "yes"):
+        ensure_vector_store_initialized()
+
+    logger.info("Application started successfully env=%s", settings.APP_ENV)
 
 
 # ---------- Root ----------
