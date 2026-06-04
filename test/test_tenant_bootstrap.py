@@ -1,0 +1,76 @@
+"""Tenant bootstrap auth: no bearer until at least one user exists."""
+
+from __future__ import annotations
+
+from unittest.mock import AsyncMock, patch
+
+import pytest
+
+
+@pytest.mark.parametrize(
+    "tenant_count,user_count,expected_status",
+    [
+        (0, 0, 200),
+        (1, 0, 200),
+        (1, 2, 401),
+    ],
+)
+def test_create_tenant_bootstrap_auth(app_client, tenant_count, user_count, expected_status):
+    with (
+        patch(
+            "app.modules.tenants.repository.TenantRepository.count_active",
+            new_callable=AsyncMock,
+            return_value=tenant_count,
+        ),
+        patch(
+            "app.modules.users.respository.UserRepository.count_active",
+            new_callable=AsyncMock,
+            return_value=user_count,
+        ),
+        patch(
+            "app.modules.tenants.service.TenantService.create_tenant",
+            new_callable=AsyncMock,
+        ) as mock_create,
+    ):
+        from uuid import uuid4
+        from types import SimpleNamespace
+
+        mock_create.return_value = SimpleNamespace(
+            id=uuid4(), name="acme", slug="acme"
+        )
+        r = app_client.post("/tenants/", json={"name": "Acme"})
+
+    assert r.status_code == expected_status
+    if expected_status == 401:
+        assert "Bearer token required" in r.json()["error"]
+
+
+@pytest.mark.parametrize(
+    "tenant_count,user_count,expected_status",
+    [
+        (0, 0, 200),
+        (1, 0, 200),
+        (1, 2, 401),
+    ],
+)
+def test_list_tenants_bootstrap_auth(app_client, tenant_count, user_count, expected_status):
+    with (
+        patch(
+            "app.modules.tenants.repository.TenantRepository.count_active",
+            new_callable=AsyncMock,
+            return_value=tenant_count,
+        ),
+        patch(
+            "app.modules.users.respository.UserRepository.count_active",
+            new_callable=AsyncMock,
+            return_value=user_count,
+        ),
+        patch(
+            "app.modules.tenants.service.TenantService.list_tenants",
+            new_callable=AsyncMock,
+            return_value=[],
+        ),
+    ):
+        r = app_client.get("/tenants/")
+
+    assert r.status_code == expected_status

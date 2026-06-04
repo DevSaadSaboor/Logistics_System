@@ -1,5 +1,6 @@
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+
 from .models import User
 
 
@@ -21,3 +22,11 @@ class UserRepository:
     async def get_by_email_and_tenant(self,tenant_id,email):
         result = await self.db.execute(select(User).where(User.tenant_id == tenant_id).where(User.email == email).where(User.deleted_at.is_(None)))
         return result.scalars().first()
+
+    async def count_active(self) -> int:
+        result = await self.db.execute(
+            select(func.count())
+            .select_from(User)
+            .where(User.deleted_at.is_(None))
+        )
+        return int(result.scalar_one())
