@@ -184,19 +184,28 @@ class ShipmentsService():
             ]
         }
     
-    async def get_shipment_by_id(self,shipment_id, tenant_id):
-        shipment = await self.repo.get_by_id_for_update(shipment_id=shipment_id,tenant_id=tenant_id)
+    async def get_shipment_by_id(self, shipment_id, tenant_id):
+        shipment = await self.repo.get_by_id_for_update(shipment_id=shipment_id, tenant_id=tenant_id)
         if not shipment:
-            logger.warning("shipment not found")
+            logger.warning(
+                "shipment.get.not_found shipment_id=%s tenant_id=%s",
+                shipment_id,
+                tenant_id,
+            )
+            raise ShipmentNotFoundError()
         return shipment
 
-    
-   
-        
-
-    
-
-
+    async def get_tenant_shipment_or_raise(self, shipment_id, tenant_id):
+        """Read-only fetch — raises ShipmentNotFoundError if not found or wrong tenant."""
+        shipment = await self.repo.get_by_id(shipment_id)
+        if not shipment or shipment.tenant_id != tenant_id:
+            logger.warning(
+                "shipment.get.not_found shipment_id=%s tenant_id=%s",
+                shipment_id,
+                tenant_id,
+            )
+            raise ShipmentNotFoundError()
+        return shipment
 
         
 

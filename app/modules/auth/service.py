@@ -1,8 +1,9 @@
 from app.modules.auth.repository import RefreshTokenRespsitory
 from app.modules.users.respository import UserRepository
-from app.core.security import hash_refresh_token,create_refresh_token,create_access_token
-from app.core.config import Settings
-from datetime import timezone,datetime
+from app.core.security import hash_refresh_token, create_refresh_token, create_access_token
+from app.core.config import settings
+from app.core.exceptions import InvalidCredentialsError
+from datetime import timezone, datetime
 
 class AuthService:
     def __init__(self,db):
@@ -14,16 +15,16 @@ class AuthService:
        token_hash = hash_refresh_token(refresh_token)
        refresh_token_record = await self.auth_repo.get_refresh_token_by_hash(token_hash)
        if refresh_token_record is None:
-          raise Exception("Invalid Refesh Token")
+          raise InvalidCredentialsError()
        if refresh_token_record.revoked_at is not None:
-          raise Exception("Refresh token revoked")
+          raise InvalidCredentialsError()
        if refresh_token_record.expires_at < datetime.now(timezone.utc):
-          raise Exception("Invalid Refresh Token")
+          raise InvalidCredentialsError()
        user = await self.user_repo.get_by_id(refresh_token_record.user_id)
        if user is None:
-          raise Exception("User not found")
+          raise InvalidCredentialsError()
        if user.tenant_id != tenant_id:
-          raise Exception("User not found")
+          raise InvalidCredentialsError()
        
        access_token = create_access_token({
           "sub" : str(user.id),
@@ -37,9 +38,9 @@ class AuthService:
        )
        new_token_hash = hash_refresh_token(new_refresh_token)
        await self.auth_repo.create(
-          user_id= user.id,
+          user_id=user.id,
           token_hash=new_token_hash,
-          expires_at= datetime.now(timezone.utc) + Settings.REFRESH_TOKEN_EXPIRE_DELTA
+          expires_at=datetime.now(timezone.utc) + settings.REFRESH_TOKEN_EXPIRE_DELTA
        )
 
        return {

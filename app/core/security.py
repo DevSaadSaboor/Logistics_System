@@ -40,10 +40,10 @@ def hash_refresh_token(token:str):
 
 def decode_access_token(token:str):
     try:
-        payload =  jwt.decode(
+        payload = jwt.decode(
             token,
             settings.SECRET_KEY,
-            algorithms=ALGORITHM
+            algorithms=[ALGORITHM]
         )
         return payload
     

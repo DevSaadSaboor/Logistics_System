@@ -143,8 +143,7 @@ class Shipment_Staus_log(Base):
     )
     timestamp : Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),
-        server_default= func.now(),
-        onupdate=func.now(),
+        server_default=func.now(),
         nullable=False
     )
     location : Mapped[str] = mapped_column(
