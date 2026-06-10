@@ -169,7 +169,7 @@ class ShipmentCategorizer:
         """
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
-            response_format={"type": "json_object"},  # forces raw JSON, no markdown wrapper
+            response_format={"type": "json_object"},
             messages=[
                 {
                     "role": "system",

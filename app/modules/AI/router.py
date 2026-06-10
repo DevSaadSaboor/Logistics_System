@@ -50,9 +50,6 @@ async def assistant(
     current_user=Depends(get_current_tenant_user),
 ):
     graph = build_graph(db)
-
-    # Swagger/OpenAPI often sends the placeholder "string" unless user edits it.
-    # Treat common placeholder/empty values as "no session provided".
     raw_session_id = (payload.session_id or "").strip()
     session_id = (
         raw_session_id
@@ -61,9 +58,6 @@ async def assistant(
     )
 
     messages = await load_messages(db, session_id)
-
-    # Save the user's message BEFORE invoking the graph so that if the
-    # assistant errors out, the user turn is still recorded.
     await save_messages(db, session_id, "user", payload.query)
 
     result = await graph.ainvoke(
